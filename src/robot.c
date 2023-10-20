@@ -19,6 +19,7 @@ int spi_fd;
 int spi_mode            = SPI_MODE_0;
 int spi_bits_per_word   = 8;
 int spi_speed           = 500'000;
+int spi_lsb_first       = 0; // MSB first
 
 void robot_init() {
     wiringPiSetupGpio();
@@ -39,6 +40,11 @@ void robot_spi_init() {
     // Set mode
     if(ioctl(spi_fd, SPI_IOC_WR_MODE, &spi_mode) < 0) {
         fprintf(stderr, "Could not set SPI mode\n");
+    }
+
+    // Set MSB first
+    if(ioctl(spi_fd, SPI_IOC_WR_LSB_FIRST, &lsb_first) < 0) {
+        fprintf(stderr, "Could not set MSB first\n");
     }
 
     // Set and read back bits per word

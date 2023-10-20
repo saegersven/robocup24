@@ -8,7 +8,7 @@ try:
 
     spi.max_speed_hz = 500000
     spi.mode = 0
-    spi.lsbfirst = True
+    spi.lsbfirst = False
     spi.cshigh = False
 
     spi.xfer([0x01, 0, 0]) # Send drive command with both speeds 0

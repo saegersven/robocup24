@@ -1,0 +1,2 @@
+libsdl2-dev
+libv4l-dev
