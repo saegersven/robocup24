@@ -1,0 +1,3 @@
+[submodule "libs/libv4l"]
+	path = libs/libv4l
+	url = https://github.com/philips/libv4l
