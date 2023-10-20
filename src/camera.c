@@ -17,14 +17,13 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/mman.h>
-
 #include <linux/videodev2.h>
 #include <pthread.h>
 #include "../libs/libv4l/include/libv4l2.h"
 
-#define CLEAR(x) memset(&(x), 0, sizeof(x))
+#include "utils.h"
 
-/* Safe ioctl */
+// Safe ioctl
 static void xioctl(int fh, int request, void* arg) {
     int r;
     do {
@@ -46,7 +45,7 @@ int stop_signal;
 
 pthread_t capture_thread_id;
 
-void start_capture(int width, int height) {
+void camera_start_capture(int width, int height) {
     alloc_image(&current_frame);
     stop_signal = 0;
     has_frame = 0;
@@ -55,10 +54,10 @@ void start_capture(int width, int height) {
     size->width = width;
     size->height = height;
     
-    pthread_create(&capture_thread_id, NULL, capture_loop, (void*)size);
+    pthread_create(&capture_thread_id, NULL, camera_capture_loop, (void*)size);
 }
 
-void stop_capture() {
+void camera_stop_capture() {
     pthread_mutex_lock(&signal_lock);
     stop_signal = 1;
     pthread_mutex_unlock(&signal_lock);
@@ -66,12 +65,12 @@ void stop_capture() {
     pthread_join(capture_thread_id, NULL);
 }
 
-Image grab_frame() {
+Image camera_grab_frame() {
     Image frame;
 
     pthread_mutex_lock(&frame_lock);
 
-    /* TODO: Add timeout */
+    // TODO: Add timeout
     while(!has_frame) {
         pthread_mutex_unlock(&frame_lock);
         usleep(10);
@@ -80,7 +79,7 @@ Image grab_frame() {
 
     frame.width = current_frame.width;
     frame.height = current_frame.height;
-    frame.channels = current_frame.channels; /* Always 3 */
+    frame.channels = current_frame.channels; // Always 3
     alloc_image(&frame);
 
     memcpy(frame.data, current_frame.data, frame.width * frame.height * frame.channels);
@@ -92,7 +91,7 @@ Image grab_frame() {
     return frame;
 }
 
-void *capture_loop(void *size) {
+void *camera_capture_loop(void *size) {
     pthread_detach(pthread_self());
 
     struct v4l2_format          fmt;
@@ -174,7 +173,7 @@ void *capture_loop(void *size) {
             FD_ZERO(&fds);
             FD_SET(fd, &fds);
 
-            /* Timeout */
+            // Timeout
             tv.tv_sec = 2;
             tv.tv_usec = 0;
 
@@ -191,7 +190,7 @@ void *capture_loop(void *size) {
         buf.memory = V4L2_MEMORY_MMAP;
         xioctl(fd, VIDIOC_DQBUF, &buf);
 
-        /* Convert to image */
+        // Conver to image
         pthread_mutex_lock(&frame_lock);
         current_frame.width = fmt.fmt.pix.width;
         current_frame.height = fmt.fmt.pix.height;
@@ -201,7 +200,7 @@ void *capture_loop(void *size) {
         has_frame = 1;
         pthread_mutex_unlock(&frame_lock);
 
-        /* Check if stop signal was activated */
+        // Check if stop signal was activated
         pthread_mutex_lock(&signal_lock);
         int sig = stop_signal;
         pthread_mutex_unlock(&signal_lock);
@@ -216,7 +215,7 @@ void *capture_loop(void *size) {
             pthread_exit(NULL);
         }
 
-        /* Queue next buffer */
+        // Queue next buffer
         xioctl(fd, VIDIOC_QBUF, &buf);
     }
 }

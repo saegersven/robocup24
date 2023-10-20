@@ -13,3 +13,11 @@ long long millis() {
 void delay(unsigned int milliseconds) {
     usleep(milliseconds * 1000);
 }
+
+int compare_float(const void *elem1, const void *elem2) {
+    float f = *((float*)elem1);
+    float s = *((float*)elem2);
+    if(f > s) return 1;
+    if(f < s) return -1;
+    return 0;
+}

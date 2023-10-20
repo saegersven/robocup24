@@ -11,7 +11,6 @@
 #include <pthread.h>
 #include <math.h>
 
-#include "../libs/libv4l/include/libv4l2.h"
 #include "../libs/SDL2-2.28.4/include/SDL.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
