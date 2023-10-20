@@ -1,0 +1,6 @@
+# autostarts main program
+# place this file in: /home/pi/.config/autostart
+[Desktop Entry]
+Name=Robocup
+Exec=sudo lxterminal --command="sudo /bin/bash -c 'sudo sh /home/pi/robocup24/autostart.sh; read'"
+Type=Application
