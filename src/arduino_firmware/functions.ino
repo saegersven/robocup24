@@ -11,6 +11,8 @@ Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
 float pitch;
 float heading;
 
+VL53L0X dist_sensors[NUM_DIST_SENSORS];
+
 bool led_on = false;
 
 void init_robot() {
@@ -32,6 +34,8 @@ void init_robot() {
 
   // Initialize BNO055
   if(!bno.begin()) error(2);
+
+  // TODO: Initialize distance sensors
 
   if(get_battery_voltage() < MIN_BATTERY_VOLTAGE) error(1);
 }
@@ -96,6 +100,15 @@ float get_heading() {
 
 float get_pitch() {
   return pitch;
+}
+
+int16_t distance(int sensor_id) {
+  int16_t dist = dist_sensors[sensor_id].readRangeSingleMillimeters();
+  
+  if(dist < 0) dist = 0;
+  if(dist > 2000) dist = 2000;
+  
+  return dist;
 }
 
 float get_battery_voltage() {

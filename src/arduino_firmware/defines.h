@@ -24,8 +24,14 @@
 #define NUM_SERVOS 3
 int servo_pins[NUM_SERVOS] = {0, 0, 0};
 
+#define NUM_DIST_SENSORS 6
+// TODO: Dist sensor definitions
+
 #define SENSOR_PITCH 10
 #define SENSOR_HEADING 11
+
+#define SENSOR_DIST_START 2
+#define SENSOR_DIST_END 9
 
 // PROTOCOL
 #define CMD_MOTOR   (0x01)

@@ -56,7 +56,7 @@ void parse_message() {
     } else if (buf[0] == CMD_SERVO) {
       servo(buf[1], buf[2], buf[3]);
     } else if (buf[0] == CMD_SENSOR) {
-      int16_t value;
+      int16_t value = 0;
 
       if(buf[1] == SENSOR_PITCH) {
         update_orientation();
@@ -64,6 +64,12 @@ void parse_message() {
       } else if(buf[1] == SENSOR_HEADING) {
         update_orientation();
         value = (int16_t)(get_heading() / 1000.0f);
+      } else if(buf[1] >= SENSOR_DIST_START && buf[1] <= SENSOR_DIST_END) {
+        // One of the distance sensors
+        int sensor_id = buf[1] - SENSOR_DIST_START;
+        if(sensor_id < NUM_DIST_SENSORS) {
+          // TODO: Read out distance sensor
+        }
       }
 
       if(value == 0) value = 1; // Value 0 signals no data yet

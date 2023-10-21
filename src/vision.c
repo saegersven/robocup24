@@ -183,6 +183,58 @@ void set_pixel(Image img, int x, int y, int r, int g, int b) {
     img.data[img.channels * (y * img.width + x) + 2] = b;
 }
 
+// Recursive function to find all pixels that belong to this group
+void add_to_group_center(int x_pos, int y_pos, Image img, Group *group) {
+    const int col_limit = img.width - 1;
+    const int row_limit = img.height - 1;
+
+    for(int y = -1; y <= 1; ++y) {
+        int y_idx = y_pos + y;
+        if(y_idx < 0) continue;
+
+        for(int x = -1; x <= 1; ++x) {
+            int x_idx = x_pos + x;
+            if(x_idx < 0) continue;
+
+            if(img.data[y_idx * img.width + x_idx] == 0xFF) {
+                img.data[y_idx * img.width + x_idx] = 0x7F;
+                
+                group->center_x += (float)x_idx;
+                group->center_y += (float)y_idx;
+                ++group->num_pixels;
+                
+                if(x_idx > 0 && x_idx < col_limit &&
+                   y_idx > 0 && y_idx < row_limit) {
+                    add_to_group_center(x_idx, y_idx, img, group);
+                }
+            }
+        }
+    }
+}
+
+void find_groups(Image img, Group *groups) {
+    int n = 0;
+    for(int y = 0; y < img.height; y++) {
+        for(int x = 0; x < img.width; x++) {
+            // Don't check for non-zero, as found pixels are set to 0x7F
+            if(img.data[y * img.width + x] == 0xFF) {
+                groups[n].num_pixels = 0;
+                groups[n].center_x = 0.0f;
+                groups[n].center_y = 0.0f;
+                add_to_group_center(x, y, img, &groups[num_groups]);
+
+                // add_to_group_center finds all pixels of this group
+                // Some checking for noise by eliminating all groups with too few pixels
+                if(groups[n].num_pixels > MIN_GROUP_PIXELS) {
+                    groups[n].center_x /= groups[n].num_pixels;
+                    groups[n].center_y /= groups[n],num_pixels;
+                    n++;
+                }
+            }
+        }
+    }
+}
+
 static SDL_Renderer* renderer;
 static SDL_Window* window;
 static SDL_Texture* texture;
