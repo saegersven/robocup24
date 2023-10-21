@@ -15,11 +15,11 @@
 // SPI definitions
 #define SPI_MAX_RETRIES 2
 
-int spi_fd;
-int spi_mode            = SPI_MODE_0;
-int spi_bits_per_word   = 8;
-int spi_speed           = 500'000;
-int spi_lsb_first       = 0; // MSB first
+static int spi_fd;
+static int spi_mode            = SPI_MODE_0;
+static int spi_bits_per_word   = 8;
+static int spi_speed           = 500'000;
+static int spi_lsb_first       = 0; // MSB first
 
 void robot_init() {
     wiringPiSetupGpio();

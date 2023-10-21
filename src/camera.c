@@ -1,11 +1,3 @@
-/*
-* Controls camera at /dev/video0 via V4L2 (+libv4l)
-* Initializes camera and starts capture thread with start_capture().
-* Grabs frames and stores reference. Frames are retrieved and
-* copied with grab_frame().
-* stop_capture() closes camera and stops thread.
-*/
-
 #include "camera.h"
 
 #include <string.h>
@@ -36,14 +28,14 @@ static void xioctl(int fh, int request, void* arg) {
     }
 }
 
-pthread_mutex_t frame_lock = PTHREAD_MUTEX_INITIALIZER;
-Image current_frame;
-int has_frame;
+static pthread_mutex_t frame_lock = PTHREAD_MUTEX_INITIALIZER;
+static Image current_frame;
+static int has_frame;
 
-pthread_mutex_t signal_lock = PTHREAD_MUTEX_INITIALIZER;
-int stop_signal;
+static pthread_mutex_t signal_lock = PTHREAD_MUTEX_INITIALIZER;
+static int stop_signal;
 
-pthread_t capture_thread_id;
+static pthread_t capture_thread_id;
 
 void camera_start_capture(int width, int height) {
     alloc_image(&current_frame);

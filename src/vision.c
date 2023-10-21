@@ -183,24 +183,24 @@ void set_pixel(Image img, int x, int y, int r, int g, int b) {
     img.data[img.channels * (y * img.width + x) + 2] = b;
 }
 
-SDL_Renderer* renderer;
-SDL_Window* window;
-SDL_Texture* texture;
-pthread_t window_thread_id;
-int pitch;
+static SDL_Renderer* renderer;
+static SDL_Window* window;
+static SDL_Texture* texture;
+static pthread_t window_thread_id;
+static int pitch;
 
 void create_and_show(Image img) {
     create_window(img.width, img.height);
     show_image(img);
 }
 
-int window_running;
-int set_window_width;
-int set_window_height;
-int window_width;
-int window_height;
-pthread_mutex_t image_lock = PTHREAD_MUTEX_INITIALIZER;
-Image window_img;
+static int window_running;
+static int set_window_width;
+static int set_window_height;
+static int window_width;
+static int window_height;
+static pthread_mutex_t image_lock = PTHREAD_MUTEX_INITIALIZER;
+static Image window_img;
 
 void create_window() {
     window_running = 1;
