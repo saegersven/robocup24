@@ -37,6 +37,10 @@ static int stop_signal;
 
 static pthread_t capture_thread_id;
 
+static int camera_fd;
+
+static const int NUM_BUFFERS = 2;
+
 void camera_start_capture(int width, int height) {
     alloc_image(&current_frame);
     stop_signal = 0;
@@ -83,6 +87,71 @@ Image camera_grab_frame() {
     return frame;
 }
 
+void camera_init_capture(struct image_size size, struct v4l2_format *fmt, char *dev_name) {
+    camera_fd = v4l2_open(dev_name, O_RDWR | O_NONBLOCK, 0);
+    if(camera_fd < 0) {
+        fprintf(stderr, "Could not open camera device\n");
+        exit(EXIT_FAILURE);
+    }
+
+    CLEAR(fmt);
+    fmt->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    fmt->fmt.pix.width       = size.width;
+    fmt->fmt.pix.height      = size.height;
+    fmt->fmt.pix.pixelformat = V4L2_PIX_FMT_BGR24;
+    fmt->fmt.pix.field       = V4L2_FIELD_INTERLACED;
+    xioctl(camera_fd, VIDIOC_S_FMT, fmt);
+
+    if(fmt->fmt.pix.pixelformat != V4L2_PIX_FMT_BGR24) {
+        printf("Libv4l did not accept BGR24 format\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if(fmt->fmt.pix.width != size.width || (fmt->fmt.pix.height != size.height)) {
+        printf("Driver is sending image at %dx%d\n",
+            fmt->fmt.pix.width, fmt->fmt.pix.height);
+    }
+}
+
+void camera_init_buffers(struct v4l2_requestbuffers *req, struct image_data_buffer *buffers, struct v4l2_buffer *buf) {
+    CLEAR(*req);
+    req->count = NUM_BUFFERS;
+    req->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    req->memory = V4L2_MEMORY_MMAP;
+    xioctl(camera_fd, VIDIOC_REQBUFS, req);
+
+    buffers = calloc(req->count, sizeof(*buffers));
+    for(int i = 0; i < NUM_BUFFERS; i++) {
+        CLEAR(*buf);
+
+        buf->type    = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        buf->memory  = V4L2_MEMORY_MMAP;
+        buf->index   = i;
+
+        xioctl(camera_fd, VIDIOC_QUERYBUF, buf);
+
+        buffers[i].length = buf->length;
+        buffers[i].start = v4l2_mmap(NULL, buf->length,
+            PROT_READ | PROT_WRITE, MAP_SHARED, camera_fd, buf->m.offset);
+
+        if(MAP_FAILED == buffers[i].start) {
+            fprintf(stderr, "mmap failed\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+}
+
+camera_queue_buffers(struct v4l2_buffer *buf, enum v4l2_buf_type *type) {
+    for(i = 0; i < NUM_BUFFERS; ++i) {
+        CLEAR(*buf);
+        buf->type    = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        buf->memory  = V4L2_MEMORY_MMAP;
+        buf->index = i;
+        xioctl(camera_fd, VIDIOC_QBUF, buf);
+    }
+    *type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+}
+
 void *camera_capture_loop(void *size) {
     pthread_detach(pthread_self());
 
@@ -92,84 +161,33 @@ void *camera_capture_loop(void *size) {
     enum v4l2_buf_type          type;
     fd_set                      fds;
     struct timeval              tv;
-    int                         r, fd = -1;
+    int                         r;
     unsigned int                i, n_buffers;
     char                        *dev_name = "/dev/video0";
     struct image_data_buffer    *buffers;
 
-    unsigned int width = ((struct image_size*)size)->width;
-    unsigned int height = ((struct image_size*)size)->height;
+    // Camera initialization (request for specified format)
+    camera_init_capture(*((struct image_size*)size), &fmt, dev_name);
+    
+    // Init and request two buffers, do memory mapping
+    camera_init_buffers(&req, buffers, &buf);
 
-    fd = v4l2_open(dev_name, O_RDWR | O_NONBLOCK, 0);
-    if(fd < 0) {
-        fprintf(stderr, "Could not open camera device\n");
-        exit(EXIT_FAILURE);
-    }
+    // Queue the two buffers
+    camera_queue_buffers(&buf, &type);
 
-    CLEAR(fmt);
-    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    fmt.fmt.pix.width       = width;
-    fmt.fmt.pix.height      = height;
-    fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR24;
-    fmt.fmt.pix.field       = V4L2_FIELD_INTERLACED;
-    xioctl(fd, VIDIOC_S_FMT, &fmt);
-
-    if(fmt.fmt.pix.pixelformat != V4L2_PIX_FMT_BGR24) {
-        printf("Libv4l did not accept BGR24 format\n");
-        exit(EXIT_FAILURE);
-    }
-
-    if(fmt.fmt.pix.width != width || (fmt.fmt.pix.height != height)) {
-        printf("Driver is sending image at %dx%d\n",
-            fmt.fmt.pix.width, fmt.fmt.pix.height);
-    }
-
-    CLEAR(req);
-    req.count = 2;
-    req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    req.memory = V4L2_MEMORY_MMAP;
-    xioctl(fd, VIDIOC_REQBUFS, &req);
-
-    buffers = calloc(req.count, sizeof(*buffers));
-    for(n_buffers = 0; n_buffers < req.count; ++n_buffers) {
-        CLEAR(buf);
-
-        buf.type    = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        buf.memory  = V4L2_MEMORY_MMAP;
-        buf.index   = n_buffers;
-
-        xioctl(fd, VIDIOC_QUERYBUF, &buf);
-
-        buffers[n_buffers].length = buf.length;
-        buffers[n_buffers].start = v4l2_mmap(NULL, buf.length,
-            PROT_READ | PROT_WRITE, MAP_SHARED, fd, buf.m.offset);
-
-        if(MAP_FAILED == buffers[n_buffers].start) {
-            fprintf(stderr, "mmap failed\n");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    for(i = 0; i < n_buffers; ++i) {
-        CLEAR(buf);
-        buf.type    = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        buf.memory  = V4L2_MEMORY_MMAP;
-        buf.index = i;
-        xioctl(fd, VIDIOC_QBUF, &buf);
-    }
-    type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-
-    xioctl(fd, VIDIOC_STREAMON, &type);
+    // Capture
+    xioctl(camera_fd, VIDIOC_STREAMON, &type);
     while(1) {
+        // Set timeout
         do {
             FD_ZERO(&fds);
-            FD_SET(fd, &fds);
+            FD_SET(camera_fd, &fds);
 
             // Timeout
             tv.tv_sec = 2;
             tv.tv_usec = 0;
 
-            r = select(fd + 1, &fds, NULL, NULL, &tv);
+            r = select(camera_fd + 1, &fds, NULL, NULL, &tv);
         } while((r == -1) && (errno == EINTR));
 
         if(r == -1) {
@@ -180,9 +198,9 @@ void *camera_capture_loop(void *size) {
         CLEAR(buf);
         buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         buf.memory = V4L2_MEMORY_MMAP;
-        xioctl(fd, VIDIOC_DQBUF, &buf);
+        xioctl(camera_fd, VIDIOC_DQBUF, &buf);
 
-        // Conver to image
+        // Put data into current_frame image container
         pthread_mutex_lock(&frame_lock);
         current_frame.width = fmt.fmt.pix.width;
         current_frame.height = fmt.fmt.pix.height;
@@ -197,17 +215,18 @@ void *camera_capture_loop(void *size) {
         int sig = stop_signal;
         pthread_mutex_unlock(&signal_lock);
         if(sig) {
+            // Stop capture
             type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-            xioctl(fd, VIDIOC_STREAMOFF, &type);
+            xioctl(camera_fd, VIDIOC_STREAMOFF, &type);
             for(i = 0; i < n_buffers; ++i) {
                 v4l2_munmap(buffers[i].start, buffers[i].length);
             }
-            v4l2_close(fd);
+            v4l2_close(camera_fd);
             
             pthread_exit(NULL);
         }
 
-        // Queue next buffer
-        xioctl(fd, VIDIOC_QBUF, &buf);
+        // Re-queue buffer
+        xioctl(camera_fd, VIDIOC_QBUF, &buf);
     }
 }

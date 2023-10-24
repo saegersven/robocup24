@@ -73,7 +73,6 @@ uint8_t parity_byte(uint8_t b) {
     return (0x6996 >> b) & 1;
 }
 
-// Data must include command
 void robot_spi_transfer(uint8_t command, uint8_t *data, size_t data_len, uint8_t* ret, size_t return_len) {
     uint8_t buf[32];
 
@@ -152,7 +151,7 @@ bool robot_button() {
 int16_t robot_sensor(uint8_t sensor_id) {
     int16_t value;
 
-    // Some sensor readouts may take a long time. So maybe consider re-sending this until the value != 0
+    // TODO: Sensor readings take a long time, so maybe re-send until proper values are received
     robot_spi_transfer(CMD_SENSOR, &sensor_id, sizeof(sensor_id), &value, sizeof(value));
 
     return value;
