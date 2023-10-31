@@ -8,63 +8,7 @@ void init_robot() {
   Serial.println("");
   Serial.println("--- DEBUGGING WINDOW ---");
 
-  
-  pinMode(MISO, OUTPUT);
-  pinMode(MOSI, INPUT);
-  pinMode(SCK, INPUT);
-  pinMode(SS, INPUT);
-
-  // SPCR is SPI control register. Bits (left is 7):
-  // 7 - SPIE: Enables interrupt when 1
-  // 6 - SPE: Enables SPI when 1
-  // 5 - DORD: LSB first when 1
-  // 4 - MSTR: Peripheral mode when 0
-  // 3 - CPOL: Clock Idle Low when 0
-  // 2 - CPHA: Sample data on rising edge when 0
-  // 1,0 - SPI speed, 00 is fastest (4MHz)
-  SPCR = 0b11100000;
-
-  // Initialize with valid command ID
-  buf[0] = 0;
-  // Write zeros to return data so Pi doesn't receive garbage
-  memset(return_data, 0, SPI_BUF_SIZE);
-
   start_up_bat_voltage = get_battery_voltage(); // store current bat voltage on startup so it does not have to be read out each loop iteration for m() function
-}
-
-// TODO: add function description
-void parse_message() {
-  if (spi_pos == message_lengths[buf[0]]) {
-    if (buf[0] == CMD_MOTOR) {
-      m(*((int8_t*)&buf[1]), *((int8_t*)&buf[2]));
-    } else if (buf[0] == CMD_SERVO) {
-      servo(buf[1], buf[2], buf[3]);
-    } else if (buf[0] == CMD_SENSOR) {
-      int16_t value = 0;
-
-      if (buf[1] == SENSOR_PITCH) {
-        update_orientation();
-        value = (int16_t)(get_pitch() / 1000.0f);
-      } else if (buf[1] == SENSOR_HEADING) {
-        update_orientation();
-        value = (int16_t)(get_heading() / 1000.0f);
-      } else if (buf[1] >= SENSOR_DIST_START && buf[1] <= SENSOR_DIST_END) {
-        // One of the distance sensors
-        int sensor_id = buf[1] - SENSOR_DIST_START;
-        if (sensor_id < NUM_DIST_SENSORS) {
-          // TODO: Read out distance sensor
-        }
-      }
-
-      if (value == 0) value = 1; // Value 0 signals no data yet
-
-      memcpy(return_data, value, sizeof(int16_t));
-    } else if (buf[0] == CMD_TURN) { }
-
-    // Reset
-    buf[0] = 0;
-    spi_pos = 0;
-  }
 }
 
 // function to drive robot
@@ -78,8 +22,8 @@ void m(int8_t left, int8_t right, int16_t duration) {
     digitalWrite(M_LEFT_B, LOW);
     digitalWrite(M_RIGHT_A, LOW);
     digitalWrite(M_RIGHT_B, LOW);
-    analogWrite(M_LEFT_EN, 0);
-    analogWrite(M_RIGHT_EN, 0);
+    analogWrite(M_LEFT_EN, 255);
+    analogWrite(M_RIGHT_EN, 255);
     delay(duration);
     return;
   }
@@ -101,15 +45,23 @@ void m(int8_t left, int8_t right, int16_t duration) {
   }
 
   // set pwm signal (aka speed) for both motors:
+  if (left == -128) left = -127;
+  if (right == -128) right = -127;
+  uint8_t left_pwm  = abs(left) * 2;
+  uint8_t right_pwm = abs(right) * 2;
+  
   // since bat voltage can be as high as 16.8V and we have 12V motors, we need to adjust the duty cicle based on bat voltage
-  float left_pwm  =  (float)map(left, -127, 128, 0, 255);
-  float right_pwm = (float)map(right, -127, 128, 0, 255);
-
+  float normalize_factor = (12.0f / start_up_bat_voltage);
+  if (normalize_factor > 1.0f) normalize_factor = 1.0f;
+  left_pwm *= normalize_factor;
+  right_pwm *= normalize_factor;
+  
   Serial.print("Left: ");
   Serial.print(left_pwm);
   Serial.print("  Right: ");
   Serial.println(right_pwm);
-
+  analogWrite(M_LEFT_EN, left_pwm);
+  analogWrite(M_RIGHT_EN, right_pwm);
   delay(duration);
 }
 
@@ -165,5 +117,5 @@ int16_t distance(int sensor_id) {
 
 // returns current battery voltage in V (!!! actual battery voltage is around 0.8V higher due to voltage drop accross diodes)
 float get_battery_voltage() {
-  return analogRead(PIN_BATTERY_VOLTAGE) * (16.8 / 968.1672);
+  return analogRead(PIN_BATTERY_VOLTAGE) * (15.6 / 978);
 }
