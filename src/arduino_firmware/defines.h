@@ -5,19 +5,16 @@
 // MOTORS
 // A and B are pins to control direction
 // EN are PWM control pins
-#define M_LEFT_A         0
-#define M_LEFT_B         0
-#define M_LEFT_FRONT_EN  0
-#define M_LEFT_REAR_EN   0
+#define M_LEFT_A         7
+#define M_LEFT_B         4
+#define M_LEFT_EN        3
 
-#define M_RIGHT_A        0
-#define M_RIGHT_B        0
-#define M_RIGHT_FRONT_EN 0
-#define M_RIGHT_REAR_EN  0
+#define M_RIGHT_A        8
+#define M_RIGHT_B        9
+#define M_RIGHT_EN       5
 
 #define PIN_BTN             0
-#define PIN_LED             13
-#define PIN_BATTERY_VOLTAGE 0
+#define PIN_BATTERY_VOLTAGE A7
 
 #define REAR_WHEEL_FACTOR 1.1f
 
@@ -39,7 +36,7 @@ int servo_pins[NUM_SERVOS] = {0, 0, 0};
 #define CMD_SENSOR  (0x04)
 #define CMD_TURN    (0x05)
 
-#define MIN_BATTERY_VOLTAGE 6.5f
+#define MIN_BATTERY_VOLTAGE 11.2f // 4x 3V - 0.8V should trigger alert (0.8V is due to voltage drop accross diodes for reverse voltage protection)
 
 // Message lengths, indexed with command ID. Length including command and data
 // Command ID between transfers is zero -> large message length for ID zero
