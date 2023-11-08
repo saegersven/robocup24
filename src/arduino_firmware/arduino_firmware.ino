@@ -88,7 +88,5 @@ ISR(SPI_STC_vect) {
 }
 
 void loop() {
-  pinMode(13, OUTPUT);
-  digitalWrite(13, HIGH);
-  delay(4000);
+  m(127, 127, 1000);
 }
