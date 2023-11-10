@@ -13,6 +13,8 @@
 #define M_RIGHT_B        9
 #define M_RIGHT_EN       5
 
+#define MOTOR_CORRECTION_FACTOR 0.95
+
 #define PIN_BTN             0
 #define PIN_BATTERY_VOLTAGE A7
 

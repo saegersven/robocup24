@@ -47,8 +47,8 @@ void m(int8_t left, int8_t right, int16_t duration) {
   // set pwm signal (aka speed) for both motors:
   if (left == -128) left = -127;
   if (right == -128) right = -127;
-  uint8_t left_pwm  = abs(left) * 2;
-  uint8_t right_pwm = abs(right) * 2;
+  uint8_t left_pwm  = abs(left) * 2 * MOTOR_CORRECTION_FACTOR;
+  uint8_t right_pwm = abs(right) * 2 * MOTOR_CORRECTION_FACTOR; 
   
   // since bat voltage can be as high as 16.8V and we have 12V motors, we need to adjust the duty cicle based on bat voltage
   float normalize_factor = (12.0f / start_up_bat_voltage);
@@ -117,5 +117,5 @@ int16_t distance(int sensor_id) {
 
 // returns current battery voltage in V (!!! actual battery voltage is around 0.8V higher due to voltage drop accross diodes)
 float get_battery_voltage() {
-  return analogRead(PIN_BATTERY_VOLTAGE) * (15.6 / 978);
+  return analogRead(PIN_BATTERY_VOLTAGE) * (15.74 / 880);
 }

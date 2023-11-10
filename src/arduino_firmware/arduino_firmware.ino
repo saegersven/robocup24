@@ -88,5 +88,7 @@ ISR(SPI_STC_vect) {
 }
 
 void loop() {
-  m(127, 127, 1000);
+  Serial.println(get_battery_voltage());
+  m(127, 127, 5000);
+  m(-127, -127, 5000);
 }
