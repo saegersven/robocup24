@@ -1,4 +1,7 @@
 void init_robot() {
+  servo.attach(6);
+  servo.write(60);
+  delay(450);
   Serial.begin(115200);
   Serial.println(" _____ _ _   _____ _ _     ");
   Serial.println("| __  |_| |_|   __| |_|___ ");
@@ -9,6 +12,24 @@ void init_robot() {
   Serial.println("--- DEBUGGING WINDOW ---");
 
   start_up_bat_voltage = get_battery_voltage(); // store current bat voltage on startup so it does not have to be read out each loop iteration for m() function
+  
+  // battery is not switched on, don't start moving
+  if (start_up_bat_voltage < 5.0) {
+    pinMode(13, OUTPUT);
+    m(0, 0, 0);
+    while (start_up_bat_voltage < 5.0) {
+      Serial.println("Waiting for power...");
+      digitalWrite(13, HIGH);
+      delay(500);
+      digitalWrite(13, LOW);
+      delay(500);
+      start_up_bat_voltage = get_battery_voltage();
+    }
+  }
+  Serial.print("Start up battery voltage: ");
+  Serial.print(start_up_bat_voltage);
+  Serial.println("V");
+  Serial.println("Starting robot...");
 }
 
 // function to drive robot
@@ -53,8 +74,8 @@ void m(int8_t left, int8_t right, int16_t duration) {
   // since bat voltage can be as high as 16.8V and we have 12V motors, we need to adjust the duty cicle based on bat voltage
   float normalize_factor = (12.0f / start_up_bat_voltage);
   if (normalize_factor > 1.0f) normalize_factor = 1.0f;
-  left_pwm *= normalize_factor;
-  right_pwm *= normalize_factor;
+  left_pwm *= normalize_factor * 0.5f;
+  right_pwm *= normalize_factor * 0.5f;
   
   Serial.print("Left: ");
   Serial.print(left_pwm);
@@ -70,7 +91,13 @@ void m(int8_t left, int8_t right) {
   m(left, right, 0);
 }
 
-void servo(uint8_t id, uint8_t angle, bool stall) {
+void servo2(uint8_t id, uint8_t angle, bool stall) {
+  Serial.print("Moving servo: ");
+  Serial.print(id);
+  Serial.print(" angle: ");
+  Serial.print(angle);
+  Serial.print(" stall?: ");
+  Serial.println(stall);
   /*
   if(angle == 0) {
     // Toggle attachmeant of servo

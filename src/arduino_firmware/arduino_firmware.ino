@@ -4,6 +4,8 @@
 */
 
 #include <SPI.h>
+#include <Servo.h>
+#include <EEPROM.h>
 
 #include "defines.h"
 
@@ -15,15 +17,17 @@ float start_up_bat_voltage = 0.0f;
 
 // Must be filled with zeros or contain valid data
 uint8_t return_data[SPI_BUF_SIZE];
+Servo servo;  // create servo object to control a servo
 
 
 // TODO: add function description
 void parse_message() {
   if (spi_pos == message_lengths[buf[0]]) {
+    
     if (buf[0] == CMD_MOTOR) {
-      m(*((int8_t*)&buf[1]), *((int8_t*)&buf[2]));
+      //m(*((int8_t*)&buf[1]), *((int8_t*)&buf[2]));
     } else if (buf[0] == CMD_SERVO) {
-      servo(buf[1], buf[2], buf[3]);
+      servo2(buf[1], buf[2], buf[3]);
     } else if (buf[0] == CMD_SENSOR) {
       int16_t value = 0;
 
@@ -44,7 +48,22 @@ void parse_message() {
       if (value == 0) value = 1; // Value 0 signals no data yet
 
       memcpy(return_data, value, sizeof(int16_t));
-    } else if (buf[0] == CMD_TURN) { }
+    } else if (buf[0] == CMD_TURN) {
+    
+    } else if (buf[0] == CMD_LED) {
+      delay(50);
+
+      pinMode(13, OUTPUT);
+      delay(5);
+      digitalWrite(13, buf[1]);
+
+      delay(500);
+
+      digitalWrite(13, !buf[1]);
+
+      delay(5);
+      pinMode(13, INPUT);
+    }
 
     // Reset
     buf[0] = 0;
@@ -54,7 +73,7 @@ void parse_message() {
 
 void setup() {
   init_robot();
-
+  
   // init SPI stuff
   pinMode(MISO, OUTPUT);
   pinMode(MOSI, INPUT);
@@ -68,11 +87,12 @@ void setup() {
   // 4 - MSTR: Peripheral mode when 0
   // 3 - CPOL: Clock Idle Low when 0
   // 2 - CPHA: Sample data on rising edge when 0
-  // 1,0 - SPI speed, 00 is fastest (4MHz)
+  // 1,0 - SPI speed (not important in peripheral mode)
   SPCR = 0b11100000;
 
   // Initialize with valid command ID
   buf[0] = 0;
+  spi_pos = 0;
   // Write zeros to return data so Pi doesn't receive garbage
   memset(return_data, 0, SPI_BUF_SIZE);
 }
@@ -80,15 +100,30 @@ void setup() {
 // SPI interrupt routine
 ISR(SPI_STC_vect) {
   buf[spi_pos] = SPDR;
-  SPDR = return_data[spi_pos];
+  //SPDR = return_data[spi_pos];
 
-  return_data[spi_pos] = 0;
+  //return_data[spi_pos] = 0;
 
   ++spi_pos;
 }
 
 void loop() {
-  Serial.println(get_battery_voltage());
-  m(127, 127, 5000);
-  m(-127, -127, 5000);
+  if(spi_pos != 0) {
+    EEPROM.write(32, spi_pos);
+  }
+  
+  /*if(spi_pos == SPI_BUF_SIZE) {
+    // Write to EEPROM
+    for(int i = 0; i < SPI_BUF_SIZE; i++) { 
+      EEPROM.update(i, buf[i]);
+    }
+
+    SPCR = 0;
+    pinMode(13, OUTPUT);
+    delay(10);
+    digitalWrite(13, HIGH);
+    while(true);
+  }*/
+  
+  //parse_message();
 }

@@ -13,7 +13,7 @@
 #define M_RIGHT_B        9
 #define M_RIGHT_EN       5
 
-#define MOTOR_CORRECTION_FACTOR 0.95
+#define MOTOR_CORRECTION_FACTOR 0.7
 
 #define PIN_BTN             0
 #define PIN_BATTERY_VOLTAGE A7
@@ -38,8 +38,10 @@ int servo_pins[NUM_SERVOS] = {0, 0, 0};
 #define CMD_SENSOR  (0x04)
 #define CMD_TURN    (0x05)
 
+#define CMD_LED     (0x06)
+
 #define MIN_BATTERY_VOLTAGE 11.2f // 4x 3V - 0.8V should trigger alert (0.8V is due to voltage drop accross diodes for reverse voltage protection)
 
 // Message lengths, indexed with command ID. Length including command and data
 // Command ID between transfers is zero -> large message length for ID zero
-const int message_lengths[6] = {0xFF, 3, 4, 2, 3};
+const int message_lengths[6] = {0xFF, 3, 4, 2, 3,  2};

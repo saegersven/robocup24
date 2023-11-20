@@ -10,5 +10,5 @@ find_package(Threads REQUIRED)
 
 add_executable(spi_test src/main.c)
 
-target_link_libraries(robocup Threads::Threads)
-target_link_libraries(robocup m) # math
+target_link_libraries(spi_test Threads::Threads)
+target_link_libraries(spi_test m) # math
