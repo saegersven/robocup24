@@ -17,7 +17,7 @@
 static int spi_fd;
 static int spi_mode          = SPI_MODE_0;
 static int spi_bits_per_word = 8;
-static int spi_speed         = 500000;
+static int spi_speed         = 10000;
 static int spi_lsb_first     = 0;
 
 void delay(unsigned int milliseconds) {
@@ -141,10 +141,23 @@ int main() {
     spi_init();
     delay(1000);
 
+    uint8_t data = 0;
     while(1) {
-        robot_drive(127, 127, 2000);
-        delay(1000);
-        robot_drive(-127, -127, 2000);
+        struct spi_ioc_transfer transfer;
+        memset(&transfer, 0, sizeof(transfer));
+        uint8_t d = 0b00000100;
+        transfer.tx_buf = (unsigned long)&d;
+        transfer.len = 1;
+        transfer.delay_usecs    = 0;
+        transfer.bits_per_word  = spi_bits_per_word;
+        transfer.cs_change      = 1;
+
+        printf("Transfering %d\n", data);
+        if(ioctl(spi_fd, SPI_IOC_MESSAGE(1), &transfer) < 0) {
+            fprintf(stderr, "SPI transfer failed\n");
+        }
+        data++;
+
         delay(1000);
     }
 }

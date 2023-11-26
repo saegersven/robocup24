@@ -1,15 +1,12 @@
 void init_robot() {
-  servo.attach(6);
-  servo.write(60);
-  delay(450);
-  Serial.begin(115200);
+  /*
   Serial.println(" _____ _ _   _____ _ _     ");
   Serial.println("| __  |_| |_|   __| |_|___ ");
   Serial.println("| __ -| |  _|   __| | | . |");
   Serial.println("|_____|_|_| |__|  |_|_|  _|");
   Serial.println("                      |_|  ");
   Serial.println("");
-  Serial.println("--- DEBUGGING WINDOW ---");
+  Serial.println("--- DEBUGGING WINDOW ---");*/
 
   start_up_bat_voltage = get_battery_voltage(); // store current bat voltage on startup so it does not have to be read out each loop iteration for m() function
   
@@ -26,10 +23,12 @@ void init_robot() {
       start_up_bat_voltage = get_battery_voltage();
     }
   }
+  pinMode(13, OUTPUT);
+  /*
   Serial.print("Start up battery voltage: ");
   Serial.print(start_up_bat_voltage);
   Serial.println("V");
-  Serial.println("Starting robot...");
+  Serial.println("Starting robot...");*/
 }
 
 // function to drive robot
@@ -71,16 +70,17 @@ void m(int8_t left, int8_t right, int16_t duration) {
   uint8_t left_pwm  = abs(left) * 2 * MOTOR_CORRECTION_FACTOR;
   uint8_t right_pwm = abs(right) * 2 * MOTOR_CORRECTION_FACTOR; 
   
-  // since bat voltage can be as high as 16.8V and we have 12V motors, we need to adjust the duty cicle based on bat voltage
+  // since bat voltage can be as high as 16.8V and we have 12V motors, we need to adjust the duty cycle based on bat voltage
   float normalize_factor = (12.0f / start_up_bat_voltage);
   if (normalize_factor > 1.0f) normalize_factor = 1.0f;
-  left_pwm *= normalize_factor * 0.5f;
-  right_pwm *= normalize_factor * 0.5f;
+  left_pwm *= normalize_factor * 0.8f;
+  right_pwm *= normalize_factor * 0.8f;
   
+  /*
   Serial.print("Left: ");
   Serial.print(left_pwm);
   Serial.print("  Right: ");
-  Serial.println(right_pwm);
+  Serial.println(right_pwm);*/
   analogWrite(M_LEFT_EN, left_pwm);
   analogWrite(M_RIGHT_EN, right_pwm);
   delay(duration);

@@ -3,127 +3,67 @@
 * All robot functionality is in functions.ino.
 */
 
-#include <SPI.h>
 #include <Servo.h>
 #include <EEPROM.h>
 
 #include "defines.h"
 
-#define SPI_BUF_SIZE 32
+#define SERIAL_BUF_SIZE 32
 
-int spi_pos = 0;
-uint8_t buf[SPI_BUF_SIZE];
-float start_up_bat_voltage = 0.0f;
+uint8_t message[SERIAL_BUF_SIZE];
+int message_pos = 0;
 
-// Must be filled with zeros or contain valid data
-uint8_t return_data[SPI_BUF_SIZE];
 Servo servo;  // create servo object to control a servo
-
 
 // TODO: add function description
 void parse_message() {
-  if (spi_pos == message_lengths[buf[0]]) {
-    
-    if (buf[0] == CMD_MOTOR) {
-      //m(*((int8_t*)&buf[1]), *((int8_t*)&buf[2]));
-    } else if (buf[0] == CMD_SERVO) {
-      servo2(buf[1], buf[2], buf[3]);
-    } else if (buf[0] == CMD_SENSOR) {
-      int16_t value = 0;
+  if (message[0] == CMD_MOTOR) {
+    //digitalWrite(13, HIGH);
+    m(*((int8_t*)&message[1]), *((int8_t*)&message[2]), 0);
+  } else if (message[0] == CMD_SERVO) {
+    servo2(message[1], message[2], message[3]);
+  } else if (message[0] == CMD_SENSOR) {
+    int16_t value = 0;
 
-      if (buf[1] == SENSOR_PITCH) {
-        update_orientation();
-        value = (int16_t)(get_pitch() / 1000.0f);
-      } else if (buf[1] == SENSOR_HEADING) {
-        update_orientation();
-        value = (int16_t)(get_heading() / 1000.0f);
-      } else if (buf[1] >= SENSOR_DIST_START && buf[1] <= SENSOR_DIST_END) {
-        // One of the distance sensors
-        int sensor_id = buf[1] - SENSOR_DIST_START;
-        if (sensor_id < NUM_DIST_SENSORS) {
-          // TODO: Read out distance sensor
-        }
+    if (message[1] == SENSOR_PITCH) {
+      update_orientation();
+      value = (int16_t)(get_pitch() / 1000.0f);
+    } else if (message[1] == SENSOR_HEADING) {
+      update_orientation();
+      value = (int16_t)(get_heading() / 1000.0f);
+    } else if (message[1] >= SENSOR_DIST_START && message[1] <= SENSOR_DIST_END) {
+      // One of the distance sensors
+      int sensor_id = message[1] - SENSOR_DIST_START;
+      if (sensor_id < NUM_DIST_SENSORS) {
+        // TODO: Read out distance sensor
       }
-
-      if (value == 0) value = 1; // Value 0 signals no data yet
-
-      memcpy(return_data, value, sizeof(int16_t));
-    } else if (buf[0] == CMD_TURN) {
-    
-    } else if (buf[0] == CMD_LED) {
-      delay(50);
-
-      pinMode(13, OUTPUT);
-      delay(5);
-      digitalWrite(13, buf[1]);
-
-      delay(500);
-
-      digitalWrite(13, !buf[1]);
-
-      delay(5);
-      pinMode(13, INPUT);
     }
 
-    // Reset
-    buf[0] = 0;
-    spi_pos = 0;
+    if (value == 0) value = 1; // Value 0 signals no data yet
+  } else if (message[0] == CMD_TURN) {
+  
+  } else if (message[0] == CMD_LED) {
+    digitalWrite(13, message[1]);
   }
 }
 
 void setup() {
+  Serial.begin(115200);
   init_robot();
-  
-  // init SPI stuff
-  pinMode(MISO, OUTPUT);
-  pinMode(MOSI, INPUT);
-  pinMode(SCK, INPUT);
-  pinMode(SS, INPUT);
-
-  // SPCR is SPI control register. Bits (left is 7):
-  // 7 - SPIE: Enables interrupt when 1
-  // 6 - SPE: Enables SPI when 1
-  // 5 - DORD: LSB first when 1
-  // 4 - MSTR: Peripheral mode when 0
-  // 3 - CPOL: Clock Idle Low when 0
-  // 2 - CPHA: Sample data on rising edge when 0
-  // 1,0 - SPI speed (not important in peripheral mode)
-  SPCR = 0b11100000;
-
-  // Initialize with valid command ID
-  buf[0] = 0;
-  spi_pos = 0;
-  // Write zeros to return data so Pi doesn't receive garbage
-  memset(return_data, 0, SPI_BUF_SIZE);
-}
-
-// SPI interrupt routine
-ISR(SPI_STC_vect) {
-  buf[spi_pos] = SPDR;
-  //SPDR = return_data[spi_pos];
-
-  //return_data[spi_pos] = 0;
-
-  ++spi_pos;
 }
 
 void loop() {
-  if(spi_pos != 0) {
-    EEPROM.write(32, spi_pos);
-  }
-  
-  /*if(spi_pos == SPI_BUF_SIZE) {
-    // Write to EEPROM
-    for(int i = 0; i < SPI_BUF_SIZE; i++) { 
-      EEPROM.update(i, buf[i]);
+  while(Serial.available() > 0) {
+    message[message_pos] = Serial.read();
+    message_pos++;
+
+    if(message_pos == SERIAL_BUF_SIZE) {
+      message_pos = 0;
     }
 
-    SPCR = 0;
-    pinMode(13, OUTPUT);
-    delay(10);
-    digitalWrite(13, HIGH);
-    while(true);
-  }*/
-  
-  //parse_message();
+    if(message_pos == message_lengths[message[0]]) {
+      parse_message();
+      message_pos = 0;
+    }
+  }
 }

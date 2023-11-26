@@ -44,4 +44,6 @@ int servo_pins[NUM_SERVOS] = {0, 0, 0};
 
 // Message lengths, indexed with command ID. Length including command and data
 // Command ID between transfers is zero -> large message length for ID zero
-const int message_lengths[6] = {0xFF, 3, 4, 2, 3,  2};
+const int message_lengths[7] = {0xFF, 3, 4, 2, 3, 0xFF ,2};
+
+float start_up_bat_voltage = 0;
