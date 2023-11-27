@@ -26,6 +26,8 @@
 
 #pragma once
 
+#include <stdbool.h>
+
 #define ARDUINO_BOOT_UP_DELAY 200
 
 // GPIO Pins
@@ -48,7 +50,7 @@
 
 // Initialization
 void robot_init();
-void robot_spi_init();
+void robot_serial_init();
 
 // Movement
 void robot_drive(int8_t left, int8_t right, int32_t duration);

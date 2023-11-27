@@ -293,18 +293,18 @@ void* window_loop(void* arg) {
         }
 
         SDL_LockTexture(texture, NULL, &pixels, &pitch);
+        pthread_mutex_lock(&image_lock);
 
         for(int x = 0; x < window_width; x++) {
             for(int y = 0; y < window_height; y++) {
                 uint8_t* base = ((uint8_t*) pixels) + (4 * (y * window_width + x));
-                pthread_mutex_lock(&image_lock);
                 base[0] = window_img.data[3 * (y * window_width + x)];
                 base[1] = window_img.data[3 * (y * window_width + x) + 1];
                 base[2] = window_img.data[3 * (y * window_width + x) + 2];
-                pthread_mutex_unlock(&image_lock);
                 base[3] = 255;
             }
         }
+        pthread_mutex_unlock(&image_lock);
 
         SDL_UnlockTexture(texture);
         SDL_RenderCopy(renderer, texture, NULL, NULL);
