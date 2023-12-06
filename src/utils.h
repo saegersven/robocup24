@@ -21,6 +21,8 @@
 
 // Constants
 #define PI 3.141592653f
+#define R180 PI
+#define R90 (PI/2.0f)
 
 // Macros
 #define FOR_MILLIS_VAR(ms, var) long long var = millis(); \
@@ -30,8 +32,12 @@
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
+#define DTOR(x) (x/180.0f*PI)
+#define RTOD(x) (x*180.0f/PI)
+
 // Time functions
 long long millis();
+long long micros();
 void delay(unsigned int milliseconds);
 
 // Compares two floats (passed to qsort)

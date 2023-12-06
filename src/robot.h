@@ -48,6 +48,8 @@
 #define CMD_SENSOR  (0x04)
 #define CMD_TURN    (0x05)
 
+#define DISTANCE_FACTOR 0.0f // TODO
+
 // Initialization
 void robot_init();
 void robot_serial_init();

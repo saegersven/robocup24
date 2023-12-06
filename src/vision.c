@@ -68,54 +68,22 @@ void to_grayscale(Image src, Image *dest) {
     }
 }
 
-void resize_image(Image src, Image *dest, int scale) {
-    if(scale == -1 || scale == 0 || scale == 1) {
-        dest->data = NULL;
-        copy_image(src, dest);
-        return;
-    }
-
-    int shrinking = scale < 0;
-
-    if(shrinking) {
-        scale = -scale;
-        dest->width = src.width / scale;
-        dest->height = src.height / scale;
-    } else {
-        dest->width = src.width * scale;
-        dest->height = src.height * scale;
-    }
+void resize_image(Image src, Image *dest, int new_width, int new_height) {
+    dest->width = new_width;
+    dest->height = new_height;
     dest->channels = src.channels;
-
     alloc_image(dest);
 
-    if(shrinking) {
-        for(int y = 0; y < dest->height; y++) {
-        for(int x = 0; x < dest->width; x++) {
-        for(int k = 0; k < src.channels; k++) {
-            int avg = 0;
-            for(int i = 0; i < scale; i++) {
-                for(int j = 0; j < scale; j++) {
-                    avg += src.data[src.channels * ((y * scale + i) * src.width + (x * scale + j)) + k];
-                }
+    for(int i = 0; i < new_height; i++) {
+        for(int j = 0; j < new_width; j++) {
+            int dest_idx = src.channels * (i * new_width + j);
+            int src_i = i * (float)src.height / new_height;
+            int src_j = j * (float)src.width / new_width;
+            int src_idx = src.channels * (src_i * src.width + src_j);
+
+            for(int k = 0; k < src.channels; k++) {
+                dest->data[dest_idx + k] = src.data[src_idx + k];
             }
-            avg /= scale * scale;
-            dest->data[dest->channels * (y * dest->width + x) + k] = avg;
-        }
-        }
-        }
-    } else {
-        for(int y = 0; y < src.height; y++) {
-        for(int x = 0; x < src.width; x++) {
-        for(int k = 0; k < src.channels; k++) {
-            for(int i = 0; i < scale; i++) {
-                for(int j = 0; j < scale; j++) {
-                    dest->data[dest->channels * ((y * scale + i) * dest->width + (x * scale + j)) + k] =
-                        src.data[src.channels * (y * src.width + x) + k];
-                }
-            }
-        }
-        }
         }
     }
 }

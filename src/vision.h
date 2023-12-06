@@ -44,6 +44,15 @@ typedef struct Image {
     uint8_t* data;
 } Image;
 
+// Maybe use static image structures?
+typedef struct LineImg {
+    uint8_t data[3 * LINE_FRAME_WIDTH * LINE_FRAME_HEIGHT];
+} LineImg;
+
+typedef struct LineImgGray {
+    uint8_t data[LINE_FRAME_WIDTH * LINE_FRAME_HEIGHT];
+}
+
 // Group of pixels
 typedef struct Group {
     uint32_t num_pixels;

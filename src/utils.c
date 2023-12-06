@@ -10,6 +10,13 @@ long long millis() {
     return (((long long)tv.tv_sec)*1000+(tv.tv_usec/1000));
 }
 
+long long micros() {
+    struct timeval tv;
+
+    gettimeofday(&tv, NULL);
+    return (((long long)tv.tv_sec)*1000000 + tv.tv_usec);
+}
+
 void delay(unsigned int milliseconds) {
     usleep(milliseconds * 1000);
 }
