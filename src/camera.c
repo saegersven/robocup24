@@ -29,7 +29,8 @@ static void xioctl(int fh, int request, void *arg) {
 }
 
 static pthread_mutex_t frame_lock = PTHREAD_MUTEX_INITIALIZER;
-static Image current_frame;
+static DECLARE_S_IMAGE(current_frame, MAX_IMAGE_WIDTH, MAX_IMAGE_HEIGHT, 3);
+uint32_t current_width, current_height;
 static int has_frame;
 
 static pthread_mutex_t signal_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -42,7 +43,6 @@ static int camera_fd;
 static const int NUM_BUFFERS = 2;
 
 void camera_start_capture(int width, int height) {
-    alloc_image(&current_frame);
     stop_signal = 0;
     has_frame = 0;
 
@@ -61,9 +61,7 @@ void camera_stop_capture() {
     pthread_join(capture_thread_id, NULL);
 }
 
-Image camera_grab_frame() {
-    Image frame;
-
+void camera_grab_frame(uint8_t *frame) {
     pthread_mutex_lock(&frame_lock);
 
     // TODO: Add timeout
@@ -73,18 +71,11 @@ Image camera_grab_frame() {
         pthread_mutex_lock(&frame_lock);
     }
 
-    frame.width = current_frame.width;
-    frame.height = current_frame.height;
-    frame.channels = current_frame.channels; // Always 3
-    alloc_image(&frame);
-
-    memcpy(frame.data, current_frame.data, frame.width * frame.height * frame.channels);
+    memcpy(frame, current_frame, current_width, current_height);
 
     has_frame = 0;
 
     pthread_mutex_unlock(&frame_lock);
-
-    return frame;
 }
 
 void camera_init_capture(struct image_size size, struct v4l2_format *fmt, char *dev_name) {
@@ -202,10 +193,14 @@ void *camera_capture_loop(void *size) {
 
         // Put data into current_frame image container
         pthread_mutex_lock(&frame_lock);
-        current_frame.width = fmt.fmt.pix.width;
-        current_frame.height = fmt.fmt.pix.height;
-        current_frame.channels = 3;
-        current_frame.data = buffers[buf.index].start;
+        current_width = fmt.fmt.pix.width;
+        current_height = fmt.fmt.pix.height;
+
+        if(current_width > MAX_IMAGE_WIDTH || current_height > MAX_IMAGE_HEIGHT) {
+            fprintf(stderr, "Camera: Retreived image too large (%dx%d)", current_width, current_height);
+        }
+
+        current_frame = buffers[buf.index].start;
 
         has_frame = 1;
         pthread_mutex_unlock(&frame_lock);

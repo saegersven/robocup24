@@ -25,7 +25,7 @@ struct Group {
 };
 
 // Very basic and slow contour finding algorithm, but its mine
-void line_add_to_group_center(int x_pos, int y_pos, Image green, struct Group *group) {
+void line_add_to_group_center(int x_pos, int y_pos, struct Group *group) {
     int x_limit = LINE_FRAME_WIDTH - 1;
     int y_limit = LINE_FRAME_HEIGHT - 1;
 
@@ -38,14 +38,14 @@ void line_add_to_group_center(int x_pos, int y_pos, Image green, struct Group *g
             if(y == 0 && x == 0) continue; // Don't need to check center pixel
 
             int idx = y_idx * LINE_FRAME_WIDTH + x_idx;
-            if(green.data[idx] == 0xFF) {
-                green.data[idx] = 0x7F;
+            if(green[idx] == 0xFF) {
+                green[idx] = 0x7F;
                 group->center_x += (float)x_idx;
                 group->center_y += (float)y_idx;
                 group->num_pixels++;
 
                 if(x_idx > 0 && x_idx < x_limit && y_idx > 0 && y_idx < y_limit)
-                    line_add_to_group_center(x_idx, y_idx, green, group);
+                    line_add_to_group_center(x_idx, y_idx, group);
             }
         }
     }
@@ -55,7 +55,7 @@ void line_find_groups(struct Group *groups, uint32_t *num_groups) {
     for(int y = 0; y < LINE_FRAME_HEIGHT; y++) {
         for(int x = 0; x < LINE_FRAME_WIDTH; x++) {
             int idx = y * LINE_FRAME_WIDTH + x;
-            if(green.data[idx] == 0xFF) {
+            if(green[idx] == 0xFF) {
                 struct Group group;
                 line_add_to_group_center(x, y, green, &group);
 
@@ -114,7 +114,7 @@ uint8_t line_green_direction(float *global_average_x, float *global_average_y) {
             for(int x = x_start; x < x_end; x++) {
                 int idx = y * LINE_FRAME_WIDTH + x;
 
-                if(black.data[idx] && !green.data[idx]) {
+                if(black[idx] && !green[idx]) {
                     average_x += (float)x;
                     average_y += (float)y;
                 }
@@ -176,11 +176,8 @@ void line_green() {
 
         robot_drive(127, 127, 20);
 
-        Image search_frame = camera_grab_frame();
-        uint32_t num_black_pixels = 0;
-        black = image_threshold(search_frame, &num_black_pixels, is_black);
-        free_image(black);
-        free_image(search_frame);
+        camera_grab_frame(frame);
+        image_threshold(LINE_IMAGE_TO_PARAMS_GRAY(black), LINE_IMAGE_TO_PARAMS(frame), &num_black_pixels, is_black);
 
         if(num_black_pixels < 200) {
             printf("Searching left and right\n");
@@ -189,16 +186,12 @@ void line_green() {
             uint32_t num_black_pixels_right = 0;
 
             robot_turn(DTOR(40.0f));
-            search_frame = camera_grab_frame();
-            black = image_threshold(search_frame, &num_black_pixels_right, is_black);
-            free_image(black);
-            free_image(search_frame);
+            camera_grab_frame(frame);
+            image_threshold(LINE_IMAGE_TO_PARAMS_GRAY(black), LINE_IMAGE_TO_PARAMS(frame), &num_black_pixels_right, is_black);
 
             robot_turn(DTOR(-80.0f));
-            search_frame = camera_grab_frame();
-            black = image_threshold(search_frame, &num_black_pixels_left, is_black);
-            free_image(black);
-            free_image(search_frame);
+            camera_grab_frame(frame);
+            image_threshold(LINE_IMAGE_TO_PARAMS_GRAY(black), LINE_IMAGE_TO_PARAMS(frame), &num_black_pixels_left, is_black);
 
             printf("LEFT %d | %d RIGHT\n", num_black_pixels_left, num_black_pixels_right);
 

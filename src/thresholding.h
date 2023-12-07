@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdio.h>
 
 #include "vision.h"
 
@@ -24,23 +25,20 @@ int is_red(uint8_t b, uint8_t g, uint8_t r) {
     return 1.0f / RED_RATIO_THRESHOLD * r > g + b && r > RED_MIN_VALUE;
 }
 
-Image image_threshold(Image in, uint32_t *num_pixels, int(*threshold_fun)(uint8_t, uint8_t, uint8_t)) {
-    Image out;
-    out.channels = 1;
-    out.height = in.height;
-    out.width = in.width;
-    alloc_image(&out);
+void image_threshold(S_IMAGE(out), S_IMAGE(in), uint32_t *num_pixels, int(*threshold_fun)(uint8_t, uint8_t, uint8_t)) {
+    if(out_c != 1 || out_h != in_h || out_w != in_w) {
+        fprintf(stderr, "image_threshold: mismatched sizes");
+        return;
+    }
 
-    for(int i = 0; i < in.height; i++) {
-        for(int j = 0; j < in.width; j++) {
-            int idx = i * in.width + j;
-            out.data[idx] = threshold_fun(in.data[3*idx], in.data[3*idx+1], in.data[3*idx+2]) ? 255 : 0;
+    for(int i = 0; i < in_h; i++) {
+        for(int j = 0; j < in_w; j++) {
+            int idx = i * in_w + j;
+            out_d[idx] = threshold_fun(in_d[3*idx], in_d[3*idx+1], in_d[3*idx+2]) ? 255 : 0;
 
-            if(out.data[idx] && num_pixels != NULL) {
+            if(out_d[idx] && num_pixels != NULL) {
                 ++(*num_pixels);
             }
         }
     }
-
-    return out;
 }

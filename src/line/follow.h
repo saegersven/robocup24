@@ -52,7 +52,7 @@ float line_get_line_angle(float last_line_angle) {
         for(int x = 0; x < LINE_FRAME_WIDTH; x++) {
             int idx = y * LINE_FRAME_WIDTH + x;
             
-            if(black.data[idx]) {
+            if(black[idx]) {
                 float distance_weight = distance_weight_map[idx];
                 if(distance_weight > 0.0f) {
                     ++num_angles;

@@ -5,9 +5,7 @@
 #define LINE_RED_MIN_PERCENTAGE 0.27f
 
 void line_red() {
-    uint32_t num_red_pixels = 0;
-    Image red = image_threshold(frame, &num_red_pixels, is_red);
-    free_image(red);
+    image_threshold(LINE_IMAGE_TO_PARAMS_GRAY(red), LINE_IMAGE_TO_PARAMS(frame), &num_red_pixels, is_red);
 
     float red_percentage = (float)num_red_pixels / (LINE_FRAME_WIDTH * LINE_FRAME_HEIGHT);
 

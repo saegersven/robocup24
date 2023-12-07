@@ -12,10 +12,13 @@
 #define LINE_FRAME_HEIGHT 48
 
 // Global images as they are required by multiple functions
-static Image frame;
+static DECLARE_S_IMAGE(frame, LINE_FRAME_WIDTH, LINE_FRAME_HEIGHT, 3);
 
-static Image black;
+static DECLARE_S_IMAGE(black, LINE_FRAME_HEIGHT, LINE_FRAME_WIDTH, 1);
 static uint32_t num_black_pixels;
 
-static Image green;
+static DECLARE_S_IMAGE(green, LINE_FRAME_HEIGHT, LINE_FRAME_WIDTH, 1);
 static uint32_t num_green_pixels;
+
+static DECLARE_S_IMAGE(red, LINE_FRAME_WIDTH, LINE_FRAME_HEIGHT, 1);
+static uint32_t num_red_pixels;
