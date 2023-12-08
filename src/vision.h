@@ -6,7 +6,7 @@
 #define MAX_IMAGE_HEIGHT 320
 
 #define S_IMAGE(identifier) uint8_t *identifier##_d, uint32_t identifier##_w, uint32_t identifier##_h, uint32_t identifier##_c
-#define DECLARE_S_IMAGE(identifier, width, height, channels) uint8_t identifier##[width * height * channels]
+#define DECLARE_S_IMAGE(identifier, width, height, channels) uint8_t identifier[width * height * channels]
 
 #define S_IMAGE_PARAMS(identifier, width, height, channels) identifier, width, height, channels
 

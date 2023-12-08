@@ -31,6 +31,6 @@ struct image_size {
 void camera_start_capture(int width, int height);
 void camera_stop_capture();
 
-void camera_grab_frame(uint8_t *frame);
+void camera_grab_frame(uint8_t *frame, uint32_t width, uint32_t height);
 
 void *camera_capture_loop(void *size);

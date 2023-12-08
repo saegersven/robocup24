@@ -36,8 +36,8 @@
 #define RTOD(x) (x*180.0f/PI)
 
 // Time functions
-long long millis();
-long long micros();
+long long milliseconds();
+long long microseconds();
 void delay(unsigned int milliseconds);
 
 // Compares two floats (passed to qsort)

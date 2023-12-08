@@ -5,11 +5,15 @@
 #include "follow.h"
 #include "green.h"
 #include "red.h"
+#include "../vision.h"
+#include "../utils.h"
 
 void line_start() {
     line_found_silver = 0;
 
-    camera_start_capture(LINE_FRAME_WIDTH, LINE_FRAME_HEIGHT);
+    line_create_maps();
+
+    camera_start_capture(LINE_CAPTURE_WIDTH, LINE_CAPTURE_HEIGHT);
 }
 
 void line_stop() {
@@ -18,7 +22,7 @@ void line_stop() {
 }
 
 void line() {
-    camera_grab_frame(frame);
+    camera_grab_frame(frame, LINE_FRAME_WIDTH, LINE_FRAME_HEIGHT);
 
     // Thresholding in here as some images are required by multiple functions
     num_black_pixels = 0;
@@ -26,6 +30,8 @@ void line() {
 
     num_green_pixels = 0;
     image_threshold(LINE_IMAGE_TO_PARAMS_GRAY(green), LINE_IMAGE_TO_PARAMS(frame), &num_green_pixels, is_green);
+
+    //write_image("black.png", LINE_IMAGE_TO_PARAMS_GRAY(black));
 
     line_follow();
     line_green();

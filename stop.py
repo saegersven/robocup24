@@ -1,19 +1,23 @@
 #!/usr/bin/env python
 
-import spidev
+import serial
+import time
 
 try:
-    spi = spidev.SpiDev()
-    spi.open(0, 0)
+    ser = serial.Serial(
+        port='/dev/ttyUSB0', #Replace ttyS0 with ttyAM0 for Pi1,Pi2,Pi0
+        baudrate = 115200,
+        parity=serial.PARITY_NONE,
+        stopbits=serial.STOPBITS_ONE,
+        bytesize=serial.EIGHTBITS,
+        timeout=1
+    )
 
-    spi.max_speed_hz = 500000
-    spi.mode = 0
-    spi.lsbfirst = False
-    spi.cshigh = False
-
-    spi.xfer([0x01, 0, 0]) # Send drive command with both speeds 0
+    time.sleep(2)
+    ser.write(bytearray([0x01, 0, 0]))
+    ser.close()
 
     print("-- stop.py: Stopped motors --")
-except:
+except Exception as e:
     # Catching all exceptions because this script is not critical
-    print("stop.py: An exception occured")
+    print("stop.py: ", e)

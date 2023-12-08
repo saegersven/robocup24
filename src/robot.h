@@ -27,8 +27,9 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stdint.h>
 
-#define ARDUINO_BOOT_UP_DELAY 200
+#define ARDUINO_BOOT_UP_DELAY 2000
 
 // GPIO Pins
 #define PIN_BTN 0 // TODO
@@ -64,6 +65,6 @@ void robot_servo(uint8_t angle, bool stall);
 // Sensing
 bool robot_button();
 
-uint16_t robot_sensor(uint8_t sensor_id);
+int16_t robot_sensor(uint8_t sensor_id);
 
 int robot_distance_avg(uint8_t sensor_id, uint8_t num_measurements, float remove_percentage);

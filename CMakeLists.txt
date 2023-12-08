@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(robocup VERSION 24)
 
+set(CMAKE_BUILD_TYPE DEBUG)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_FLAGS -Wall)
 
@@ -14,7 +15,7 @@ find_path(WIRINGPI_INCLUDE_DIRS NAMES wiringPi.h)
 
 include_directories(${WIRINGPI_INCLUDE_DIRS})
 
-add_executable(robocup src/main.c src/robot.c src/utils.c src/vision.c src/camera.c)
+add_executable(robocup src/main.c src/robot.c src/utils.c src/vision.c src/camera.c src/line/line.c src/rescue/rescue.c)
 
 target_link_libraries(robocup v4l2)
 target_link_libraries(robocup Threads::Threads)

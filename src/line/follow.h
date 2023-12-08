@@ -3,8 +3,8 @@
 #include "line_private.h"
 
 #define LINE_FOLLOW_K_P 57.0f
-#define LINE_FOLLOW_K_D 8.0f
-#define LINE_FOLLOW_BASE_SPEED 50
+#define LINE_FOLLOW_K_D 0.0f
+#define LINE_FOLLOW_BASE_SPEED 80
 
 #define LINE_CENTER_X 40
 #define LINE_CENTER_Y 48
@@ -51,8 +51,8 @@ float line_get_line_angle(float last_line_angle) {
     for(int y = 0; y < LINE_FRAME_HEIGHT; y++) {
         for(int x = 0; x < LINE_FRAME_WIDTH; x++) {
             int idx = y * LINE_FRAME_WIDTH + x;
-            
-            if(black[idx]) {
+
+            if(black[idx] != 0) {
                 float distance_weight = distance_weight_map[idx];
                 if(distance_weight > 0.0f) {
                     ++num_angles;
@@ -68,6 +68,8 @@ float line_get_line_angle(float last_line_angle) {
         }
     }
 
+    //printf("Num angles: %d\n", num_angles);
+
     if(num_angles < LINE_MIN_NUM_ANGLES) return 0.0f;
     if(total_weight == 0.0f) return 0.0f;
 
@@ -82,7 +84,9 @@ static long long last_follow_time = 0; // can be left as-is on restart
 void line_follow() {
     float line_angle = line_get_line_angle(last_line_angle);
 
-    long long time_now = micros();
+    printf("Angle: %.3f\n", line_angle);
+
+    long long time_now = microseconds();
     float dt = (time_now - last_follow_time) / 1e6f;
     float d_dt_line_angle = (line_angle - last_line_angle) / dt;
 

@@ -57,7 +57,7 @@ void line_find_groups(struct Group *groups, uint32_t *num_groups) {
             int idx = y * LINE_FRAME_WIDTH + x;
             if(green[idx] == 0xFF) {
                 struct Group group;
-                line_add_to_group_center(x, y, green, &group);
+                line_add_to_group_center(x, y, &group);
 
                 if(group.num_pixels > LINE_MIN_NUM_GROUP_PIXELS) {
                     // add_to_group_center is a recursive method that cannot know if it is
@@ -65,7 +65,7 @@ void line_find_groups(struct Group *groups, uint32_t *num_groups) {
                     group.center_x /= group.num_pixels;
                     group.center_y /= group.num_pixels;
                     groups[*num_groups] = group;
-                    *num_groups++;
+                    *num_groups += 1;
                 }
             }
         }
@@ -79,7 +79,6 @@ uint8_t line_green_direction(float *global_average_x, float *global_average_y) {
     uint32_t num_groups = 0;
 
     line_find_groups(groups, &num_groups);
-
     if(num_groups == 0) return 0;
 
     // Check if all groups y-coordinates are in a certain range to prevent premature evaluation
@@ -117,11 +116,14 @@ uint8_t line_green_direction(float *global_average_x, float *global_average_y) {
                 if(black[idx] && !green[idx]) {
                     average_x += (float)x;
                     average_y += (float)y;
+                    ++num_pixels;
                 }
             }
         } 
         average_x /= num_pixels;
         average_y /= num_pixels;
+
+        printf("(%f, %f), (%f, %f)\n", average_x, average_y, groups[i].center_x, groups[i].center_y);
 
         if(average_y < groups[i].center_y) {
             // Green point below the line
@@ -141,15 +143,24 @@ uint8_t line_green_direction(float *global_average_x, float *global_average_y) {
 
 void line_green() {
     if(num_green_pixels > LINE_MIN_NUM_GREEN_PIXELS) {
+        write_image("green.png", LINE_IMAGE_TO_PARAMS_GRAY(green));
+        write_image("black.png", LINE_IMAGE_TO_PARAMS_GRAY(black));
+        printf("Num green pixels: %d\n", num_green_pixels);
+
         float global_average_x, global_average_y;
         uint8_t green_result = line_green_direction(&global_average_x, &global_average_y);
 
-        printf("GREEN RESULT: %s\n", RESULT_STR[green_result]);
+        if(green_result == 0) return;
+
+        printf("GREEN RESULT: %d\n", green_result);
 
         // TODO: disable obstacle
 
         robot_stop();
         delay(50); // TODO: delay needed?
+
+        delay(2000);
+        return;
 
         // Approach
         float dx = global_average_x - LINE_CENTER_X;
@@ -176,7 +187,7 @@ void line_green() {
 
         robot_drive(127, 127, 20);
 
-        camera_grab_frame(frame);
+        camera_grab_frame(frame, LINE_FRAME_WIDTH, LINE_FRAME_HEIGHT);
         image_threshold(LINE_IMAGE_TO_PARAMS_GRAY(black), LINE_IMAGE_TO_PARAMS(frame), &num_black_pixels, is_black);
 
         if(num_black_pixels < 200) {
@@ -186,11 +197,11 @@ void line_green() {
             uint32_t num_black_pixels_right = 0;
 
             robot_turn(DTOR(40.0f));
-            camera_grab_frame(frame);
+            camera_grab_frame(frame, LINE_FRAME_WIDTH, LINE_FRAME_HEIGHT);
             image_threshold(LINE_IMAGE_TO_PARAMS_GRAY(black), LINE_IMAGE_TO_PARAMS(frame), &num_black_pixels_right, is_black);
 
             robot_turn(DTOR(-80.0f));
-            camera_grab_frame(frame);
+            camera_grab_frame(frame, LINE_FRAME_WIDTH, LINE_FRAME_HEIGHT);
             image_threshold(LINE_IMAGE_TO_PARAMS_GRAY(black), LINE_IMAGE_TO_PARAMS(frame), &num_black_pixels_left, is_black);
 
             printf("LEFT %d | %d RIGHT\n", num_black_pixels_left, num_black_pixels_right);

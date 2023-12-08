@@ -2,14 +2,11 @@
 
 #include <math.h>
 
-#include "vision.h"
-#include "camera.h"
-#include "thresholding.h"
-#include "utils.h"
-#include "robot.h"
-
-#define LINE_FRAME_WIDTH  80
-#define LINE_FRAME_HEIGHT 48
+#include "../vision.h"
+#include "../camera.h"
+#include "../thresholding.h"
+#include "../utils.h"
+#include "../robot.h"
 
 // Global images as they are required by multiple functions
 static DECLARE_S_IMAGE(frame, LINE_FRAME_WIDTH, LINE_FRAME_HEIGHT, 3);

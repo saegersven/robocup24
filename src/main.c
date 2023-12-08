@@ -6,8 +6,8 @@
 #include "robot.h"
 #include "vision.h"
 #include "utils.h"
-#include "line.h"
-#include "rescue.h"
+#include "line/line.h"
+#include "rescue/rescue.h"
 
 #define STATE_LINE 0
 #define STATE_RESCUE 1
@@ -42,16 +42,20 @@ int main_loop() {
 void stop() {
     printf("MAIN THREAD CANCEL\n");
     pthread_cancel(&main_thread_id);
-
+    pthread_join(main_thread_id, NULL);
     robot_stop();
     delay(100);
     robot_stop(); // Just to be sure
+    delay(50);
+    robot_stop();
     printf("STOP\n");
 }
 
 void sig_int_handler(int sig) {
     printf("SIGINT\n");
     stop();
+
+    exit(0);
 }
 
 int main() {
@@ -62,8 +66,8 @@ int main() {
     robot_init();
 
     while(1) {
-        while(!robot_button());
-        while(robot_button());
+        //while(!robot_button());
+        //while(robot_button());
 
         pthread_create(&main_thread_id, NULL, main_loop, NULL);
 

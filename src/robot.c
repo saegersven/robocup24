@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
+#include <string.h>
 
 #include <wiringPi.h>
 
@@ -21,18 +23,24 @@ void robot_init() {
     wiringPiSetupGpio();
     pinMode(PIN_BTN, INPUT);
 
-    delay(ARDUINO_BOOT_UP_DELAY);
-
     robot_serial_init();
+
+    delay(ARDUINO_BOOT_UP_DELAY);
 }
 
 void robot_serial_init() {
     // Set latency timer to 2 ms
-    FILE* latency_file = fopen("/sys/bus/usb-serial/drivers/ftdi_sio/ttyUSB0/latency_timer", 'w');
-    fwrite(latency_file, 1, '2');
+    FILE* latency_file = fopen("/sys/bus/usb-serial/drivers/ftdi_sio/ttyUSB0/latency_timer", "w");
+
+    if(latency_file == NULL) {
+        fprintf(stderr, "Failed to open latency timer file\n");
+    }
+
+    char two[] = "2";
+    fwrite(two, 1, 1, latency_file);
 
     int status;
-    termios options;
+    struct termios options;
 
     if((serial_fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY)) < 0) {
         fprintf(stderr, "Could not open Serial: %s\n", strerror(errno));
@@ -122,6 +130,7 @@ void robot_servo(uint8_t angle, bool stall) {
 }
 
 bool robot_button() {
+    return false;
     for(int i = 0; i < 4; i++) {
         if(!digitalRead(PIN_BTN)) {
             return false;
