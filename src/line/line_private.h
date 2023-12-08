@@ -2,6 +2,8 @@
 
 #include <math.h>
 
+#include "line.h"
+
 #include "../vision.h"
 #include "../camera.h"
 #include "../thresholding.h"

@@ -96,6 +96,9 @@ int robot_serial_read(uint8_t *data, uint8_t len) {
 }
 
 void robot_drive(int8_t left, int8_t right, int32_t duration) {
+    left = clamp(left, -100, 100);
+    right = clamp(right, -100, 100);
+    
     if(duration < 0) {
         left = -left;
         right = -right;

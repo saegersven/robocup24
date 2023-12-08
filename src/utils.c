@@ -21,6 +21,14 @@ void delay(unsigned int milliseconds) {
     usleep(milliseconds * 1000);
 }
 
+int clamp(int value, int min, int max) {
+    return value > min ? (value < max ? value : max) : min;
+}
+
+float clampf(float value, float min, float max) {
+    return value > min ? (value < max ? value : max) : min;
+}
+
 int compare_float(const void *elem1, const void *elem2) {
     float f = *((float*)elem1);
     float s = *((float*)elem2);

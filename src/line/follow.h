@@ -3,7 +3,8 @@
 #include "line_private.h"
 
 #define LINE_FOLLOW_K_P 57.0f
-#define LINE_FOLLOW_K_D 0.0f
+#define LINE_FOLLOW_K_D 6.0f
+#define LINE_FOLLOW_D_DT_MAX 7.0f
 #define LINE_FOLLOW_BASE_SPEED 80
 
 #define LINE_CENTER_X 40
@@ -84,15 +85,19 @@ static long long last_follow_time = 0; // can be left as-is on restart
 void line_follow() {
     float line_angle = line_get_line_angle(last_line_angle);
 
-    printf("Angle: %.3f\n", line_angle);
-
     long long time_now = microseconds();
     float dt = (time_now - last_follow_time) / 1e6f;
     float d_dt_line_angle = (line_angle - last_line_angle) / dt;
 
+    d_dt_line_angle = clampf(d_dt_line_angle, -LINE_FOLLOW_D_DT_MAX, LINE_FOLLOW_D_DT_MAX);
+
     float u = LINE_FOLLOW_K_P * line_angle + LINE_FOLLOW_K_D * d_dt_line_angle;
 
-    robot_drive(LINE_FOLLOW_BASE_SPEED + u, LINE_FOLLOW_BASE_SPEED - u, 0);
+    robot_drive(
+        clamp(LINE_FOLLOW_BASE_SPEED + u, -100, 100), 
+        clamp(LINE_FOLLOW_BASE_SPEED - u, -100, 100),
+        0
+    );
 
     last_line_angle = line_angle;
     last_follow_time = time_now;

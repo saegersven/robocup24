@@ -40,5 +40,8 @@ long long milliseconds();
 long long microseconds();
 void delay(unsigned int milliseconds);
 
+int clamp(int value, int min, int max);
+float clampf(float value, float min, float max);
+
 // Compares two floats (passed to qsort)
 int float_comparison(const void *elem1, const void *elem2);
