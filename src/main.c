@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <pthread.h>
+#include <signal.h>
 
 #include "camera.h"
 #include "robot.h"
@@ -37,7 +38,27 @@ int main_loop() {
     }
 }
 
+// Reset
+void stop() {
+    printf("MAIN THREAD CANCEL\n");
+    pthread_cancel(&main_thread_id);
+
+    robot_stop();
+    delay(100);
+    robot_stop(); // Just to be sure
+    printf("STOP\n");
+}
+
+void sig_int_handler(int sig) {
+    printf("SIGINT\n");
+    stop();
+}
+
 int main() {
+    if(signal(SIGINT, sig_int_handler) == SIG_ERR) {
+        fprintf(stderr, "Can't catch SIGINT\n");
+    }
+
     robot_init();
 
     while(1) {
@@ -48,13 +69,7 @@ int main() {
 
         while(!robot_button());
 
-        // Reset, definitely leaks memory, but has worked last year so whatever
-        printf("MAIN THREAD CANCEL\n");
-        pthread_cancel(&main_thread_id);
-        delay(100);
-
-        // Try to clean up the mess
-        robot_stop();
+        stop();
 
         while(robot_button());
     }
