@@ -10,4 +10,5 @@ include_directories(${CMAKE_SOURCE_DIR}/libs)
 
 add_executable(display_test src/main.c src/display/display.c)
 
-target_link_libraries(robocup SDL2::SDL2)
+target_link_libraries(display_test SDL2::SDL2)
+target_link_libraries(display_test m)

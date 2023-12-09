@@ -9,6 +9,7 @@
 #define NUMBER_ANGLE_D  2
 #define NUMBER_SPEED_L  3
 #define NUMBER_SPEED_R  4
+#define NUMBER_SILVER_CONFIDENCE 5
 
 #define NUM_NUMBERS     16
 
@@ -22,7 +23,10 @@
 #define MODE_LINE_FOLLOW    1
 #define MODE_LINE_OBSTACLE  2
 
-void display_create();
+#define LINE_FRAME_WIDTH 80
+#define LINE_FRAME_HEIGHT 48
+
+void display_create(int fullscreen);
 
 int display_loop();
 
