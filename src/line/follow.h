@@ -2,6 +2,8 @@
 
 #include "line_private.h"
 
+#include "../display/display.h"
+
 #define LINE_FOLLOW_K_P 57.0f
 #define LINE_FOLLOW_K_D 6.0f
 #define LINE_FOLLOW_D_DT_MAX 7.0f
@@ -93,12 +95,19 @@ void line_follow() {
 
     float u = LINE_FOLLOW_K_P * line_angle + LINE_FOLLOW_K_D * d_dt_line_angle;
 
-    robot_drive(
-        clamp(LINE_FOLLOW_BASE_SPEED + u, -100, 100), 
-        clamp(LINE_FOLLOW_BASE_SPEED - u, -100, 100),
-        0
-    );
+    int8_t m_left = clamp(LINE_FOLLOW_BASE_SPEED + u, -100, 100);
+    int8_t m_right = clamp(LINE_FOLLOW_BASE_SPEED - u, -100, 100);
+
+    robot_drive(m_left, m_right, 0);
 
     last_line_angle = line_angle;
     last_follow_time = time_now;
+
+#ifdef DISPLAY_ENABLE
+    display_set_number(NUMBER_ANGLE, line_angle);
+    display_set_number(NUMBER_ANGLE_D, d_dt_line_angle);
+    display_set_number(NUMBER_SPEED_L, (float)m_left);
+    display_set_number(NUMBER_SPEED_R, (float)m_right);
+    display_set_number(NUMBER_FPS, 1.0f / dt);
+#endif
 }

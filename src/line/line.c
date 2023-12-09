@@ -7,6 +7,7 @@
 #include "red.h"
 #include "../vision.h"
 #include "../utils.h"
+#include "../display/display.h"
 
 void line_start() {
     line_found_silver = 0;
@@ -14,6 +15,13 @@ void line_start() {
     line_create_maps();
 
     camera_start_capture(LINE_CAPTURE_WIDTH, LINE_CAPTURE_HEIGHT);
+
+#ifdef DISPLAY_ENABLE
+    display_set_mode(MODE_LINE_FOLLOW);
+    display_set_image(IMAGE_FRAME, frame);
+    display_set_image(IMAGE_BLACK, black);
+    display_set_image(IMAGE_GREEN, green);
+#endif
 }
 
 void line_stop() {

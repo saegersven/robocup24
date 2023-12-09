@@ -8,6 +8,7 @@
 #include "utils.h"
 #include "line/line.h"
 #include "rescue/rescue.h"
+#include "display/display.h"
 
 #define STATE_LINE 0
 #define STATE_RESCUE 1
@@ -49,13 +50,24 @@ void stop() {
     delay(50);
     robot_stop();
     printf("STOP\n");
+
+#ifdef DISPLAY_ENABLE
+    display_set_mode(MODE_IDLE);
+#endif
+}
+
+void quit() {
+    stop();
+    display_destroy();
+
+    exit(0);
 }
 
 void sig_int_handler(int sig) {
-    printf("SIGINT\n");
-    stop();
-
-    exit(0);
+    if(sig == SIGINT) {
+        printf("SIGINT\n");
+        quit();
+    }
 }
 
 int main() {
@@ -65,16 +77,28 @@ int main() {
 
     robot_init();
 
+#ifdef DISPLAY_ENABLE
+    display_create();
+#endif
+
     while(1) {
         //while(!robot_button());
         //while(robot_button());
 
         pthread_create(&main_thread_id, NULL, main_loop, NULL);
 
-        while(!robot_button());
+        while(!robot_button()) {
+#ifdef DISPLAY_ENABLE
+            if(display_loop()) quit();
+#endif
+        }
 
         stop();
 
-        while(robot_button());
+        while(robot_button()) {
+#ifdef DISPLAY_ENABLE
+            if(display_loop()) quit();
+#endif
+        }
     }
 }
