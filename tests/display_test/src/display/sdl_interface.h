@@ -163,13 +163,10 @@ void draw_text(const char *text, int x, int y, float b, float g, float r) {
     if(b < 0.0f) b = 0.0f;
     if(g < 0.0f) g = 0.0f;
     if(r < 0.0f) r = 0.0f;
-
     for(int i = 0; i < strlen(text); i++) {
         Glyph *gl = unicode_table[text[i]];
         draw_image(gl->pixels, MAX_GLYPH_WIDTH, MAX_GLYPH_HEIGHT, 1, x, y, MAX_GLYPH_WIDTH, MAX_GLYPH_HEIGHT, 1, r, g, b);
         x += gl->x_advance;
-
-        if(x + MAX_GLYPH_WIDTH > WINDOW_WIDTH) return;
     }
 }
 

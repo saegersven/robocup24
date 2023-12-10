@@ -13,6 +13,8 @@
 #define STATE_LINE 0
 #define STATE_RESCUE 1
 
+#define DISABLE_BUTTON_START
+
 static int state;
 static pthread_t main_thread_id;
 
@@ -70,6 +72,14 @@ void sig_int_handler(int sig) {
     }
 }
 
+void button_loop(int button_value) {
+    while((robot_button() ? 1 : 0) == (button_value ? 1 : 0)) {
+#ifdef DISPLAY_ENABLE
+        if(display_loop()) quit();
+#endif
+    }
+}
+
 int main() {
     if(signal(SIGINT, sig_int_handler) == SIG_ERR) {
         fprintf(stderr, "Can't catch SIGINT\n");
@@ -82,23 +92,17 @@ int main() {
 #endif
 
     while(1) {
-        //while(!robot_button());
-        //while(robot_button());
+#ifndef DISABLE_BUTTON_START
+        button_loop(0);
+        button_loop(1);
+#endif
 
         pthread_create(&main_thread_id, NULL, main_loop, NULL);
 
-        while(!robot_button()) {
-#ifdef DISPLAY_ENABLE
-            if(display_loop()) quit();
-#endif
-        }
+        button_loop(0);
 
         stop();
 
-        while(robot_button()) {
-#ifdef DISPLAY_ENABLE
-            if(display_loop()) quit();
-#endif
-        }
+        button_loop(1);
     }
 }
