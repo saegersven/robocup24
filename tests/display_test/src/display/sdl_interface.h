@@ -177,43 +177,39 @@ void intensify_pixels(float x, float y, float b, float g, float r) {
     buffer[3 * buf_idx + 2] = r * 255;
 }
 
-void draw_line(float x1, float y1, float x2, float y2, float b, float g, float r) {
-    int steep = 0;
-    if(fabsf(x1 - x2) < fabsf(y1 - y2)) {
-        float tmp = x1;
-        x1 = y1;
-        y1 = tmp;
-        tmp = x2;
-        x2 = y2;
-        y2 = tmp;
-        steep = 1;
-    }
+// TODO: This is very inefficient, improve
+int capsule(float px, float py, float ax, float ay, float bx, float by, float r) {
+    float pax = px - ax, pay = py - ay, bax = bx - ax, bay = by - ay;
+    float h = fmaxf(fminf((pax * bax + pay * bay) / (bax * bax + bay * bay), 1.0f), 0.0f);
+    float dx = pax - bax * h, dy = pay - bay * h;
+    return dx * dx + dy * dy < r * r;
+}
 
-    if(x1 > x2) {
-        float tmp = x1;
-        x1 = x2;
-        x2 = tmp;
-        tmp = y1;
-        y1 = y2;
-        y2 = tmp;
-    }
+void draw_line(float x1, float y1, float x2, float y2, float width, float b, float g, float r) {
+    float color[3] = {b, g, r};
+    width = width / 2;
+    float xmin = fminf(x1, x2);
+    float xmax = fmaxf(x1, x2);
+    float ymin = fminf(y1, y2);
+    float ymax = fmaxf(y1, y2);
+    for(int x = xmin - width; x < (xmax + width); x++) {
+        for(int y = ymin - width; y < (ymax + width); y++) {
+            int buf_idx = y * WINDOW_WIDTH + x;
 
-    float dx = x2 - x1;
-    float dy = y2 - y1;
-    float d_err = fabsf(dy)*2;
-    float err = 0;
-    float y = y1;
+            int c = capsule(x, y, x1, y1, x2, y2, width);
 
-    for(int x = x1; x <= x2; x += 1.0f) {
-        if(steep) {
-            intensify_pixels(y, x, b, g, r);
-        } else {
-            intensify_pixels(x, y, b, g, r);
-        }
-        err += d_err;
-        if(err > dx) {
-            y += (y2 > y1 ? 1 : -1);
-            err -= dx*2;
+            if(c) {
+                for(int k = 0; k < 3; k++) {
+                    buffer[3 * buf_idx + k] = 255 * color[k];
+                }
+            }
         }
     }
+}
+
+void draw_rectangle(float x1, float y1, float x2, float y2, float width, float b, float g, float r) {
+    draw_line(x1, y1, x2, y1, width, b, g, r);
+    draw_line(x2, y1, x2, y2, width, b, g, r);
+    draw_line(x2, y2, x1, y2, width, b, g, r);
+    draw_line(x1, y2, x1, y1, width, b, g, r);
 }

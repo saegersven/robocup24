@@ -14,8 +14,17 @@ find_library(WIRINGPI_LIBRARIES NAMES wiringPi)
 find_path(WIRINGPI_INCLUDE_DIRS NAMES wiringPi.h)
 
 include_directories(${WIRINGPI_INCLUDE_DIRS})
+include_directories(${CMAKE_SOURCE_DIR}/libs)
 
-add_executable(robocup src/main.c src/robot.c src/utils.c src/vision.c src/camera.c src/line/line.c src/rescue/rescue.c)
+add_executable(robocup
+    src/main.c
+    src/robot.c
+    src/utils.c
+    src/vision.c
+    src/camera.c
+    src/line/line.c
+    src/rescue/rescue.c
+    src/display/display.c)
 
 target_link_libraries(robocup v4l2)
 target_link_libraries(robocup Threads::Threads)
