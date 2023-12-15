@@ -13,15 +13,13 @@
 uint8_t message[SERIAL_BUF_SIZE];
 int message_pos = 0;
 
-Servo servo;  // create servo object to control a servo
-
 // TODO: add function description
 void parse_message() {
   if (message[0] == CMD_MOTOR) {
     //digitalWrite(13, HIGH);
     m(*((int8_t*)&message[1]), *((int8_t*)&message[2]), 0);
   } else if (message[0] == CMD_SERVO) {
-    servo2(message[1], message[2], message[3]);
+    servo(message[1], message[2], message[3]);
   } else if (message[0] == CMD_SENSOR) {
     int16_t value = 0;
 
@@ -36,10 +34,11 @@ void parse_message() {
       int sensor_id = message[1] - SENSOR_DIST_START;
       if (sensor_id < NUM_DIST_SENSORS) {
         // TODO: Read out distance sensor
+        value = distance(sensor_id);
       }
     }
 
-    if (value == 0) value = 1; // Value 0 signals no data yet
+    Serial.write((uint8_t*)&value, 2);
   } else if (message[0] == CMD_TURN) {
   
   } else if (message[0] == CMD_LED) {
@@ -64,6 +63,7 @@ void loop() {
     if(message_pos == message_lengths[message[0]]) {
       parse_message();
       message_pos = 0;
+      message[0] = 0;
     }
   }
 }

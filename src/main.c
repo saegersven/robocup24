@@ -49,7 +49,7 @@ void stop() {
     robot_stop();
     delay(100);
     robot_stop(); // Just to be sure
-    delay(50);
+    delay(300);
     robot_stop();
     printf("STOP\n");
 
@@ -88,7 +88,7 @@ int main() {
     robot_init();
 
 #ifdef DISPLAY_ENABLE
-    display_create();
+    display_create(0);
 #endif
 
     while(1) {

@@ -42,9 +42,11 @@ void robot_serial_init() {
     int status;
     struct termios options;
 
-    if((serial_fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY)) < 0) {
+    if((serial_fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY | O_NONBLOCK)) < 0) {
         fprintf(stderr, "Could not open Serial: %s\n", strerror(errno));
     }
+
+    delay(10);
 
     fcntl(serial_fd, F_SETFL, O_RDWR);
 
@@ -62,8 +64,8 @@ void robot_serial_init() {
     options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
     options.c_oflag &= ~OPOST;
 
-    options.c_cc[VMIN] = 1; // block
-    options.c_cc[VTIME] = 2; // 0.2 seconds
+    options.c_cc[VMIN] = 0; // block
+    options.c_cc[VTIME] = 5; // 0.5 seconds
 
     tcsetattr(serial_fd, TCSANOW, &options);
     ioctl(serial_fd, TIOCMGET, &status);
@@ -88,8 +90,10 @@ void robot_serial_write_command(uint8_t command, uint8_t *data, uint8_t len) {
 }
 
 int robot_serial_read(uint8_t *data, uint8_t len) {
-    int n = 0;
-    if((n = read(serial_fd, data, len)) < 0) {
+    tcflush(serial_fd, TCIFLUSH);
+
+    int n = read(serial_fd, data, len);
+    if(n < 0) {
         fprintf(stderr, "Read error: %s\n", strerror(errno));
     }
     return n;
@@ -126,10 +130,10 @@ void robot_turn(float angle) {
     // TODO
 }
 
-void robot_servo(uint8_t angle, bool stall) {
-    uint8_t data[2] = {angle, stall};
+void robot_servo(uint8_t servo_id, uint8_t angle, bool stall) {
+    uint8_t data[3] = {servo_id, angle, (uint8_t)stall};
 
-    robot_serial_write_command(CMD_SERVO, data, 2);
+    robot_serial_write_command(CMD_SERVO, data, 3);
 }
 
 bool robot_button() {
@@ -145,10 +149,9 @@ bool robot_button() {
 int16_t robot_sensor(uint8_t sensor_id) {
     int16_t value = 0;
 
-    robot_serial_write_command(CMD_SENSOR, sensor_id, 1);
+    robot_serial_write_command(CMD_SENSOR, &sensor_id, 1);
     
-    int res = 0;
-    while((res = robot_serial_read(&value, 2)) < 0);
+    robot_serial_read(&value, 2);
 
     return value;
 }

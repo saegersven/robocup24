@@ -4,7 +4,8 @@
 
 #include "sdl_interface.h"
 
-//#include "../line/line.h"
+#include "../line/line.h"
+#include "../rescue/rescue.h"
 
 static int mode;
 

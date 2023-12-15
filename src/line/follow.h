@@ -98,7 +98,7 @@ void line_follow() {
     int8_t m_left = clamp(LINE_FOLLOW_BASE_SPEED + u, -100, 100);
     int8_t m_right = clamp(LINE_FOLLOW_BASE_SPEED - u, -100, 100);
 
-    robot_drive(m_left, m_right, 0);
+    //robot_drive(m_left, m_right, 0);
 
     last_line_angle = line_angle;
     last_follow_time = time_now;

@@ -7,15 +7,16 @@ void init_robot() {
   Serial.println("                      |_|  ");
   Serial.println("");
   Serial.println("--- DEBUGGING WINDOW ---");*/
+  // store current bat voltage on startup so it does not have to be read out each loop iteration for m() function
 
-  start_up_bat_voltage = get_battery_voltage(); // store current bat voltage on startup so it does not have to be read out each loop iteration for m() function
+  start_up_bat_voltage = get_battery_voltage();
   
   // battery is not switched on, don't start moving
   if (start_up_bat_voltage < 5.0) {
     pinMode(13, OUTPUT);
     m(0, 0, 0);
     while (start_up_bat_voltage < 5.0) {
-      Serial.println("Waiting for power...");
+      //Serial.println("Waiting for power...");
       digitalWrite(13, HIGH);
       delay(500);
       digitalWrite(13, LOW);
@@ -91,14 +92,14 @@ void m(int8_t left, int8_t right) {
   m(left, right, 0);
 }
 
-void servo2(uint8_t id, uint8_t angle, bool stall) {
-  Serial.print("Moving servo: ");
+void servo(uint8_t id, uint8_t angle, bool stall) {
+  /*Serial.print("Moving servo: ");
   Serial.print(id);
   Serial.print(" angle: ");
   Serial.print(angle);
   Serial.print(" stall?: ");
-  Serial.println(stall);
-  /*
+  Serial.println(stall);*/
+  
   if(angle == 0) {
     // Toggle attachmeant of servo
     if(servos[id].attached() && !stall) servos[id].detach();
@@ -110,8 +111,9 @@ void servo2(uint8_t id, uint8_t angle, bool stall) {
 
   servos[id].write(angle);
 
+  delay(angle * 8);
+
   if(!stall) servos[id].detach();
-  */
 }
 
 void update_orientation() {
@@ -134,7 +136,7 @@ float get_pitch() {
 }
 
 int16_t distance(int sensor_id) {
-  int16_t dist = 0; //int16_t dist = dist_sensors[sensor_id].readRangeSingleMillimeters();
+  int16_t dist = 42; //int16_t dist = dist_sensors[sensor_id].readRangeSingleMillimeters();
   /*
   if(dist < 0) dist = 0;
   if(dist > 2000) dist = 2000;

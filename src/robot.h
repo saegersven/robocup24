@@ -34,6 +34,10 @@
 // GPIO Pins
 #define PIN_BTN 0 // TODO
 
+#define SERVO_CAM 0
+#define SERVO_ARM 1
+#define SERVO_STRING 2
+
 // Sensor IDs
 #define DIST_FRONT      (2)
 #define DIST_LEFT_FRONT (3)
@@ -60,7 +64,7 @@ void robot_drive(int8_t left, int8_t right, int32_t duration);
 void robot_stop();
 void robot_turn(float angle);
 
-void robot_servo(uint8_t angle, bool stall);
+void robot_servo(uint8_t servo_id, uint8_t angle, bool stall);
 
 // Sensing
 bool robot_button();

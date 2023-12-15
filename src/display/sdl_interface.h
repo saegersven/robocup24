@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <math.h>
+#include <stdlib.h>
 
 #include "../libs/SDL2-2.28.5/include/SDL.h"
 
@@ -74,12 +75,18 @@ void sdl_clear_buffer() {
 
 void draw_image(uint8_t *image, int image_w, int image_h, int image_c, int x_pos, int y_pos, int w, int h, int is_text, float b, float g, float r) {
     float color_factors[3] = {b, g, r};
-    for(int x = x_pos; x < x_pos + w; x++) {
-        for(int y = y_pos; y < y_pos + h; y++) {
+    float factor_x = (float)image_w / w;
+    float factor_y = (float)image_h / h;
+
+    for(int y = y_pos; y < y_pos + h; y++) {
+        /*if(!is_text) {
+            printf("%d\n", (int)(factor_y * (float)(y - y_pos)) * image_w);
+            delay(10);
+        }*/
+        for(int x = x_pos; x < x_pos + w; x++) {
             int buf_idx = y * WINDOW_WIDTH + x;
-            float factor_x = (float)image_w / w;
-            float factor_y = (float)image_h / h;
-            int img_idx = factor_y * (y - y_pos) * image_w + factor_x * (x - x_pos);
+            int img_idx = (int)(factor_y * (float)(y - y_pos)) * image_w + (int)(factor_x * (float)(x - x_pos));
+            //printf("(%f, %f), %d\n", factor_x, factor_y, img_idx);
 
             if(image_c == 3) {
                 for(int k = 0; k < 3; k++) {

@@ -11,12 +11,16 @@ ser = serial.Serial(
 	timeout=1
 )
 
+LEFT_SPEED = 80
+RIGHT_SPEED = -80
+
+time.sleep(2)
+
 while True:
-	time.sleep(1)
-	ser.write(bytearray([0x01, 0xFF, 0xFF]))
+	time.sleep(0.01)
+	ser.write(struct.pack('BB', 0x04, 3))
 	print("Wrote command")
-	time.sleep(1)
-	ser.write(bytearray([0x01, 0x00, 0x00]))
-	print("Wrote stop command")
+
+	print(ser.read(2))
 
 ser.close()

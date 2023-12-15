@@ -21,7 +21,9 @@
 #define REAR_WHEEL_FACTOR 1.1f
 
 #define NUM_SERVOS 3
-int servo_pins[NUM_SERVOS] = {0, 0, 0};
+int servo_pins[NUM_SERVOS] = {6, A0, 2};
+
+Servo servos[NUM_SERVOS];
 
 #define NUM_DIST_SENSORS 6
 // TODO: Dist sensor definitions
@@ -44,6 +46,6 @@ int servo_pins[NUM_SERVOS] = {0, 0, 0};
 
 // Message lengths, indexed with command ID. Length including command and data
 // Command ID between transfers is zero -> large message length for ID zero
-const int message_lengths[7] = {0xFF, 3, 4, 2, 3, 0xFF ,2};
+const int message_lengths[7] = {0xFF, 3, 4, 4, 2, 0xFF ,2};
 
 float start_up_bat_voltage = 0;
