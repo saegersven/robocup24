@@ -42,10 +42,16 @@ Servo servos[NUM_SERVOS];
 
 #define CMD_LED     (0x06)
 
+#define CMD_LEN_MOTOR 3
+#define CMD_LEN_SERVO 4
+#define CMD_LEN_SENSOR 2
+#define CMD_LEN_TURN 3
+#define CMD_LEN_LED 2
+
 #define MIN_BATTERY_VOLTAGE 11.2f // 4x 3V - 0.8V should trigger alert (0.8V is due to voltage drop accross diodes for reverse voltage protection)
 
 // Message lengths, indexed with command ID. Length including command and data
 // Command ID between transfers is zero -> large message length for ID zero
-const int message_lengths[7] = {0xFF, 3, 4, 4, 2, 0xFF ,2};
+const int message_lengths[7] = {0xFF, CMD_LEN_MOTOR, 0xFF, CMD_LEN_SERVO, CMD_LEN_SENSOR, CMD_LEN_TURN, CMD_LEN_LED};
 
 float start_up_bat_voltage = 0;
