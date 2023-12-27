@@ -5,8 +5,8 @@
 // MOTORS
 // A and B are pins to control direction
 // EN are PWM control pins
-#define M_LEFT_A         7
-#define M_LEFT_B         4
+#define M_LEFT_A         4
+#define M_LEFT_B         7
 #define M_LEFT_EN        3
 
 #define M_RIGHT_A        8

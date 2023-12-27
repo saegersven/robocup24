@@ -1,6 +1,6 @@
 /*
-* This file contains only SPI setup, message transfer and parsing.
-* All robot functionality is in functions.ino.
+  This file contains only SPI setup, message transfer and parsing.
+  All robot functionality is in functions.ino.
 */
 
 #include <Servo.h>
@@ -40,7 +40,7 @@ void parse_message() {
 
     Serial.write((uint8_t*)&value, 2);
   } else if (message[0] == CMD_TURN) {
-  
+
   } else if (message[0] == CMD_LED) {
     digitalWrite(13, message[1]);
   }
@@ -52,15 +52,15 @@ void setup() {
 }
 
 void loop() {
-  while(Serial.available() > 0) {
+  while (Serial.available() > 0) {
     message[message_pos] = Serial.read();
     message_pos++;
 
-    if(message_pos == SERIAL_BUF_SIZE) {
+    if (message_pos == SERIAL_BUF_SIZE) {
       message_pos = 0;
     }
 
-    if(message_pos == message_lengths[message[0]]) {
+    if (message_pos == message_lengths[message[0]]) {
       parse_message();
       message_pos = 0;
       message[0] = 0;
