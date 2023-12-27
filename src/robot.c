@@ -156,6 +156,21 @@ int16_t robot_sensor(uint8_t sensor_id) {
     return value;
 }
 
-int robot_distance_avg(uint8_t sensor_id, uint8_t num_measurements, float remove_percentage) {
-    // TODO
+int robot_distance_avg(uint8_t sensor_id, int num_measurements, int n_remove) {
+    // Take multiple measurements and take average of all but the top and bottom n_remove measurements
+    float arr[num_measurements];
+
+    for(int i = 0; i < num_measurements; i++) {
+        arr[i] = (float)robot_sensor(sensor_id);
+        delay(35);
+    }
+
+    qsort(arr, num_measurements, sizeof(float), compare_float);
+
+    float sum = 0.0f;
+    for(int i = n_remove; i < num_measurements - n_remove; i++) {
+        sum += arr[i];
+    }
+
+    return sum / num_measurements;
 }
