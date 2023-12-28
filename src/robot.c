@@ -78,6 +78,10 @@ void robot_serial_init() {
     delay(10);
 }
 
+void robot_serial_close() {
+    close(serial_fd);
+}
+
 void robot_serial_write_command(uint8_t command, uint8_t *data, uint8_t len) {
     uint8_t buf[32];
 
@@ -126,8 +130,13 @@ void robot_stop() {
 void robot_turn(float angle) {
     int16_t angle_mrad = (int16_t)(angle / 1000.0f);
 
-    uint8_t finished = 0;
-    // TODO
+    uint32_t time_ms = abs(angle) * 295.0f;
+
+    if(angle > 0) {
+        robot_drive(60, -60, time_ms);
+    } else {
+        robot_drive(-60, 60, time_ms);
+    }
 }
 
 void robot_servo(uint8_t servo_id, uint8_t angle, bool stall) {
@@ -165,7 +174,7 @@ int robot_distance_avg(uint8_t sensor_id, int num_measurements, int n_remove) {
         delay(35);
     }
 
-    qsort(arr, num_measurements, sizeof(float), compare_float);
+    //qsort(arr, num_measurements, sizeof(float), compare_float);
 
     float sum = 0.0f;
     for(int i = n_remove; i < num_measurements - n_remove; i++) {

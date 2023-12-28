@@ -10,6 +10,9 @@ void init_robot() {
   // store current bat voltage on startup so it does not have to be read out each loop iteration for m() function
 
   start_up_bat_voltage = get_battery_voltage();
+
+  pinMode(3, OUTPUT);
+  digitalWrite(3, LOW);
   
   // battery is not switched on, don't start moving
   if (start_up_bat_voltage < 5.0) {
@@ -37,6 +40,11 @@ void init_robot() {
 // int8_t right    : right motor speed from -127 to 128
 // int16_t duration: duration for how long the motors should turn
 void m(int8_t left, int8_t right, int16_t duration) {
+  if(left > 100) left = 100;
+  if(right > 100) right = 100;
+  if(left < -100) left = -100;
+  if(right < -100) right = -100;
+
   // full stop:
   if (left == 0 && right == 0) {
     digitalWrite(M_LEFT_A, LOW);
@@ -66,16 +74,14 @@ void m(int8_t left, int8_t right, int16_t duration) {
   }
 
   // set pwm signal (aka speed) for both motors:
-  if (left == -128) left = -127;
-  if (right == -128) right = -127;
-  uint8_t left_pwm  = abs(left) * 2 * MOTOR_CORRECTION_FACTOR;
-  uint8_t right_pwm = abs(right) * 2 * MOTOR_CORRECTION_FACTOR; 
+  uint8_t left_pwm  = (uint8_t)((float)abs(left) * 255.0f / 100.0f);
+  uint8_t right_pwm = (uint8_t)((float)abs(right) * 255.0f / 100.0f); 
   
   // since bat voltage can be as high as 16.8V and we have 12V motors, we need to adjust the duty cycle based on bat voltage
-  float normalize_factor = (12.0f / start_up_bat_voltage);
+  float normalize_factor = (11.0f / start_up_bat_voltage); // 11V instead of 12V because voltages are still a little too high
   if (normalize_factor > 1.0f) normalize_factor = 1.0f;
-  left_pwm *= normalize_factor * 0.8f;
-  right_pwm *= normalize_factor * 0.8f;
+  left_pwm *= normalize_factor;
+  right_pwm *= normalize_factor;
   
   /*
   Serial.print("Left: ");
@@ -84,7 +90,10 @@ void m(int8_t left, int8_t right, int16_t duration) {
   Serial.println(right_pwm);*/
   analogWrite(M_LEFT_EN, left_pwm);
   analogWrite(M_RIGHT_EN, right_pwm);
-  delay(duration);
+  if(duration > 0) {
+    delay(duration);
+    m(0, 0, 0);
+  }
 }
 
 // wrapper for main m() method

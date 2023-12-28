@@ -7,13 +7,13 @@
 // EN are PWM control pins
 #define M_LEFT_A         4
 #define M_LEFT_B         7
-#define M_LEFT_EN        3
+#define M_LEFT_EN        6
 
 #define M_RIGHT_A        8
 #define M_RIGHT_B        9
 #define M_RIGHT_EN       5
 
-#define MOTOR_CORRECTION_FACTOR 0.7
+#define MOTOR_CORRECTION_FACTOR 0.9
 
 #define PIN_BTN             0
 #define PIN_BATTERY_VOLTAGE A7
@@ -21,7 +21,7 @@
 #define REAR_WHEEL_FACTOR 1.1f
 
 #define NUM_SERVOS 3
-int servo_pins[NUM_SERVOS] = {6, A0, 2};
+int servo_pins[NUM_SERVOS] = {3, A0, 2};
 
 Servo servos[NUM_SERVOS];
 

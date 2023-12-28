@@ -8,16 +8,16 @@
 
 const char* RESULT_STR[4] = {"", "LEFT", "RIGHT", "DEAD-END"};
 
-#define LINE_MIN_NUM_GREEN_PIXELS 70
-#define LINE_MIN_NUM_GROUP_PIXELS 70
+#define LINE_MIN_NUM_GREEN_PIXELS 40
+#define LINE_MIN_NUM_GROUP_PIXELS 40
 
 #define MAX_NUM_GROUPS 8
 
 #define CUT_WIDTH 30
 #define CUT_HEIGHT 30
 
-#define GROUP_Y_MIN 17
-#define GROUP_Y_MAX 35
+#define GROUP_Y_MIN 15
+#define GROUP_Y_MAX 36
 
 struct Group {
     uint32_t num_pixels;
@@ -57,6 +57,9 @@ void line_find_groups(struct Group *groups, uint32_t *num_groups) {
             int idx = y * LINE_FRAME_WIDTH + x;
             if(green[idx] == 0xFF) {
                 struct Group group;
+                group.num_pixels = 0;
+                group.center_x = 0.0f;
+                group.center_y = 0.0f;
                 line_add_to_group_center(x, y, &group);
 
                 if(group.num_pixels > LINE_MIN_NUM_GROUP_PIXELS) {
@@ -123,7 +126,7 @@ uint8_t line_green_direction(float *global_average_x, float *global_average_y) {
         average_x /= num_pixels;
         average_y /= num_pixels;
 
-        printf("(%f, %f), (%f, %f)\n", average_x, average_y, groups[i].center_x, groups[i].center_y);
+        //printf("(%f, %f), (%f, %f)\n", average_x, average_y, groups[i].center_x, groups[i].center_y);
 
         if(average_y < groups[i].center_y) {
             // Green point below the line
@@ -143,24 +146,21 @@ uint8_t line_green_direction(float *global_average_x, float *global_average_y) {
 
 void line_green() {
     if(num_green_pixels > LINE_MIN_NUM_GREEN_PIXELS) {
-        write_image("green.png", LINE_IMAGE_TO_PARAMS_GRAY(green));
+        /*write_image("green.png", LINE_IMAGE_TO_PARAMS_GRAY(green));
         write_image("black.png", LINE_IMAGE_TO_PARAMS_GRAY(black));
-        printf("Num green pixels: %d\n", num_green_pixels);
+        printf("Num green pixels: %d\n", num_green_pixels);*/
 
         float global_average_x, global_average_y;
         uint8_t green_result = line_green_direction(&global_average_x, &global_average_y);
 
-        if(green_result == 0) return;
-
         printf("GREEN RESULT: %d\n", green_result);
+
+        if(green_result == 0) return;
 
         // TODO: disable obstacle
 
         robot_stop();
         delay(50); // TODO: delay needed?
-
-        delay(2000);
-        return;
 
         // Approach
         float dx = global_average_x - LINE_CENTER_X;
@@ -170,13 +170,13 @@ void line_green() {
 
         robot_turn(angle);
         delay(50);
-        robot_drive(100, 100, DISTANCE_FACTOR * (distance - 50));
+        robot_drive(80, 80, DISTANCE_FACTOR * (distance - 50));
 
         robot_drive(60, 60, 200);
 
         if(green_result == RESULT_DEAD_END) {
             robot_turn(R180);
-            robot_drive(127, 127, 100);
+            robot_drive(80, 80, 100);
         } else if(green_result == RESULT_LEFT) {
             robot_turn(DTOR(-65.0f));
             delay(30);
@@ -185,7 +185,7 @@ void line_green() {
             delay(30);
         }
 
-        robot_drive(127, 127, 20);
+        robot_drive(80, 80, 20);
 
         camera_grab_frame(frame, LINE_FRAME_WIDTH, LINE_FRAME_HEIGHT);
         image_threshold(LINE_IMAGE_TO_PARAMS_GRAY(black), LINE_IMAGE_TO_PARAMS(frame), &num_black_pixels, is_black);

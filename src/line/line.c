@@ -5,7 +5,7 @@
 #include "follow.h"
 #include "green.h"
 #include "red.h"
-#include "silver.h"
+//#include "silver.h"
 #include "../vision.h"
 #include "../utils.h"
 #include "../display/display.h"

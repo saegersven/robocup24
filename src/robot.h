@@ -58,6 +58,7 @@
 // Initialization
 void robot_init();
 void robot_serial_init();
+void robot_serial_close();
 
 // Movement
 void robot_drive(int8_t left, int8_t right, int32_t duration);
@@ -71,4 +72,4 @@ bool robot_button();
 
 int16_t robot_sensor(uint8_t sensor_id);
 
-int robot_distance_avg(uint8_t sensor_id, uint8_t num_measurements, float remove_percentage);
+int robot_distance_avg(uint8_t sensor_id, int num_measurements, int remove_percentage);

@@ -46,11 +46,10 @@ void stop() {
     printf("MAIN THREAD CANCEL\n");
     pthread_cancel(&main_thread_id);
     pthread_join(main_thread_id, NULL);
-    robot_stop();
-    delay(100);
-    robot_stop(); // Just to be sure
-    delay(300);
-    robot_stop();
+
+    robot_serial_close();
+    robot_serial_init();
+
     printf("STOP\n");
 
 #ifdef DISPLAY_ENABLE

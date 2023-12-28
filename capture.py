@@ -1,3 +1,20 @@
+from picamera import PiCamera
+import time
+
+cam = PiCamera(resolution=(320, 240))
+cam.hflip = True
+cam.vflip = True
+
+while True:
+    cmd = input('>')
+
+    if 'q' in cmd:
+        break
+    else:
+        cam.capture('/home/pi/capture/' + str(int(time.time() * 1000)) + '.png')
+
+
+"""
 import cv2
 
 WIDTH = 320
@@ -30,4 +47,4 @@ while(True):
         break
 
 cap.release()
-cv2.destroyAllWindows()
+cv2.destroyAllWindows()"""
