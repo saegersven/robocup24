@@ -53,6 +53,10 @@
 #define CMD_SENSOR  (0x04)
 #define CMD_TURN    (0x05)
 
+#define CAM_POS_UP 35
+#define CAM_POS_DOWN2 90
+#define CAM_POS_DOWN 135
+
 #define DISTANCE_FACTOR 0.0f // TODO
 
 // Initialization

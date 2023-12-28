@@ -13,6 +13,11 @@ find_package(Threads REQUIRED)
 find_library(WIRINGPI_LIBRARIES NAMES wiringPi)
 find_path(WIRINGPI_INCLUDE_DIRS NAMES wiringPi.h)
 
+add_library(tflite SHARED IMPORTED)
+set_target_properties(tflite PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/libs/libtensorflowlite_c.so)
+target_include_directories(tflite
+    INTERFACE ${CMAKE_SOURCE_DIR}/libs)
+
 include_directories(${WIRINGPI_INCLUDE_DIRS})
 include_directories(${CMAKE_SOURCE_DIR}/libs)
 
@@ -31,3 +36,5 @@ target_link_libraries(robocup Threads::Threads)
 target_link_libraries(robocup SDL2::SDL2)
 target_link_libraries(robocup m) # math
 target_link_libraries(robocup ${WIRINGPI_LIBRARIES})
+target_link_libraries(robocup tflite)
+target_link_libraries(robocup atomic)

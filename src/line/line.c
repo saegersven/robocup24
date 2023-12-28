@@ -5,7 +5,7 @@
 #include "follow.h"
 #include "green.h"
 #include "red.h"
-//#include "silver.h"
+#include "silver.h"
 #include "../vision.h"
 #include "../utils.h"
 #include "../display/display.h"
@@ -16,6 +16,10 @@ void line_start() {
     line_create_maps();
 
     camera_start_capture(LINE_CAPTURE_WIDTH, LINE_CAPTURE_HEIGHT);
+
+    silver_init();
+
+    robot_servo(SERVO_CAM, CAM_POS_DOWN, false);
 
 #ifdef DISPLAY_ENABLE
     display_set_mode(MODE_LINE_FOLLOW);
@@ -28,6 +32,7 @@ void line_start() {
 void line_stop() {
     robot_stop();
     camera_stop_capture();
+    silver_destroy();
 }
 
 void line() {
@@ -44,4 +49,5 @@ void line() {
 
     line_follow();
     line_green();
+    line_silver();
 }

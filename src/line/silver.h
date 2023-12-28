@@ -5,9 +5,9 @@
 #include <stdint.h>
 #include <pthread.h>
 
-#include "../libs/tensorflow/lite/c/c_api.h"
+#include "../libs/tensorflow/lite/c/c/c_api.h"
 
-#include "utils.h"
+#include "../utils.h"
 
 #define SILVER_MODEL_PATH "/home/pi/robocup24/runtime_data/silver.tflite"
 
@@ -23,7 +23,7 @@ static int stop_signal;
 
 static pthread_t silver_thread_id;
 
-void silver_loop() {
+void *silver_loop(void* args) {
     pthread_detach(pthread_self());
 
     while(!stop_signal) {
@@ -44,7 +44,7 @@ void silver_loop() {
 
         if(TfLiteTensorCopyFromBuffer(input_tensor, input_image_norm, WIDTH * HEIGHT * sizeof(float)) != kTfLiteOk) {
             fprintf(stderr, "silver_detect: Could not copy input tensor\n");
-            return;
+            return NULL;
         }
 
         TfLiteInterpreterInvoke(interpreter);
@@ -67,7 +67,7 @@ void silver_init() {
     }
 
     stop_signal = 0;
-    pthread_create(&silver_thread_id, NULL, silver_loop);
+    pthread_create(&silver_thread_id, NULL, silver_loop, NULL);
 }
 
 void silver_destroy() {
@@ -79,6 +79,41 @@ void silver_destroy() {
     TfLiteModelDelete(model);
 }
 
-int silver_get_current_prediction() {
-    return silver_outputs[0] > silver_outputs[1];
+void line_silver() {
+#ifdef DISPLAY_ENABLE
+    display_set_number(NUMBER_SILVER_CONFIDENCE, silver_outputs[0]);
+#endif
+
+    if(silver_outputs[0] > silver_outputs[1]) {
+        printf("NN detects entrance!\n");
+        robot_stop();
+
+        char path[32];
+        sprintf(path, "/home/pi/silver/%d.png", milliseconds());
+        write_image(path, LINE_IMAGE_TO_PARAMS(frame));
+        
+        robot_servo(SERVO_CAM, CAM_POS_DOWN2, false);
+        delay(400);
+        camera_grab_frame(frame, LINE_FRAME_WIDTH, LINE_FRAME_HEIGHT);
+
+        robot_servo(SERVO_CAM, CAM_POS_DOWN, false);
+        delay(400);
+
+        // Thresholding in here as some images are required by multiple functions
+        num_black_pixels = 0;
+        image_threshold(LINE_IMAGE_TO_PARAMS_GRAY(black), LINE_IMAGE_TO_PARAMS(frame), &num_black_pixels, is_black);
+
+        float black_percentage = (float)num_black_pixels/LINE_FRAME_WIDTH/LINE_FRAME_HEIGHT;
+        printf("%f\n", black_percentage);
+        delay(1000);
+        if(black_percentage > 0.07f) {
+            printf("Too much black\n");
+            robot_drive(80, 80, 100);
+        } else {
+            printf("Real silver!\n");
+            robot_drive(80, 80, 400);
+            delay(3000);
+            //line_found_silver = 1;
+        }
+    }
 }
