@@ -6,3 +6,4 @@ Previous year's repos:
 [2022](https://github.com/saegersven/robocup)
 
 Website: [kraemer123.de](http://kraemer123.de)
+YouTube: [EvB Robocup](https://www.youtube.com/@evbrobocup/)
