@@ -10,6 +10,8 @@
 #include "../utils.h"
 #include "../display/display.h"
 
+static DECLARE_S_IMAGE(line_correction, LINE_FRAME_WIDTH, LINE_FRAME_HEIGHT, 3);
+
 void line_start() {
     line_found_silver = 0;
 
@@ -18,6 +20,8 @@ void line_start() {
     camera_start_capture(LINE_CAPTURE_WIDTH, LINE_CAPTURE_HEIGHT);
 
     silver_init();
+
+    read_raw_image("/home/pi/robocup24/runtime_data/line_correction.bin", line_correction);
 
     robot_servo(SERVO_CAM, CAM_POS_DOWN, false);
 
@@ -31,12 +35,20 @@ void line_start() {
 
 void line_stop() {
     robot_stop();
-    camera_stop_capture();
     silver_destroy();
+    camera_stop_capture();
+}
+
+void line_correct_image() {
+    for(int i = 0; i < LINE_FRAME_HEIGHT; i++) {
+        if(frame[i] < )
+    }
 }
 
 void line() {
     camera_grab_frame(frame, LINE_FRAME_WIDTH, LINE_FRAME_HEIGHT);
+
+    line_correct_image();
 
     // Thresholding in here as some images are required by multiple functions
     num_black_pixels = 0;

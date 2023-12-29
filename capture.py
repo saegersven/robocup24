@@ -1,7 +1,7 @@
 from picamera import PiCamera
 import time
 
-cam = PiCamera(resolution=(320, 240))
+cam = PiCamera(resolution=(80, 48))
 cam.hflip = True
 cam.vflip = True
 

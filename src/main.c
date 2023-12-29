@@ -13,12 +13,12 @@
 #define STATE_LINE 0
 #define STATE_RESCUE 1
 
-#define DISABLE_BUTTON_START
+//#define DISABLE_BUTTON_START
 
 static int state;
 static pthread_t main_thread_id;
 
-int main_loop() {
+void *main_loop(void *arg) {
     pthread_detach(pthread_self());
 
     printf("MAIN THREAD START\n");
@@ -37,6 +37,10 @@ int main_loop() {
             }
         } else {
             rescue();
+
+            // Rescue finished
+            state = STATE_LINE;
+            line_start();
         }
     }
 }
@@ -44,11 +48,19 @@ int main_loop() {
 // Reset
 void stop() {
     printf("MAIN THREAD CANCEL\n");
-    pthread_cancel(&main_thread_id);
+    pthread_cancel(main_thread_id);
     pthread_join(main_thread_id, NULL);
 
-    robot_serial_close();
-    robot_serial_init();
+    robot_stop();
+
+    // Cleanup a bit (hopefully works)
+    if(state == STATE_LINE) {
+        line_stop();
+    } else if(state == STATE_RESCUE) {
+        //rescue_stop();
+    }
+    //robot_serial_close();
+    //robot_serial_init();
 
     printf("STOP\n");
 

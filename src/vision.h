@@ -15,6 +15,8 @@
 
 void copy_image(S_IMAGE(src), S_IMAGE(dest));
 
+void read_raw_image(const char* path, uint8_t *img);
+
 void write_image(const char* path, S_IMAGE(img));
 
 void resize_image(S_IMAGE(src), S_IMAGE(dest), int new_width, int new_height);

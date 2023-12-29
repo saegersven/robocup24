@@ -110,7 +110,22 @@ void draw_mode_rescue() {
         draw_text("DEAD EN", 360, 200, 1.0f, 0.8f, 0.2f);
     }
 
-    draw_image(images[IMAGE_RESCUE_FRAME], RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3, 20, 60, 320, 240, 0, 1.0f, 1.0f, 1.0f);
+    int RESCUE_FRAME_DRAW_WIDTH = 320;
+    int RESCUE_FRAME_DRAW_HEIGHT = 240;
+    draw_image(images[IMAGE_RESCUE_FRAME], RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3, 20, 60, RESCUE_FRAME_DRAW_WIDTH, RESCUE_FRAME_DRAW_HEIGHT, 0, 1.0f, 1.0f, 1.0f);
+
+    if(numbers[NUMBER_RESCUE_POS_X] != 0.0f && numbers[NUMBER_RESCUE_POS_Y] != 0.0f) {
+        // Draw rect around victims
+        float WIDTH = 40.0f;
+        float HEIGHT = 40.0f;
+        float factor_x = (float)RESCUE_FRAME_DRAW_WIDTH / RESCUE_FRAME_WIDTH;
+        float factor_y = (float)RESCUE_FRAME_DRAW_HEIGHT / RESCUE_FRAME_HEIGHT;
+        float rect_x1 = 20 + numbers[NUMBER_RESCUE_POS_X] * factor_x - WIDTH / 2;
+        float rect_x2 = 20 + numbers[NUMBER_RESCUE_POS_X] * factor_x + WIDTH / 2;
+        float rect_y1 = 60 + numbers[NUMBER_RESCUE_POS_Y] * factor_y - HEIGHT / 2;
+        float rect_y2 = 60 + numbers[NUMBER_RESCUE_POS_Y] * factor_y + HEIGHT / 2;
+        draw_rectangle(rect_x1, rect_y1, rect_x2, rect_y2, 2.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+    }
 }
 
 int display_loop() {

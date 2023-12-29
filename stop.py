@@ -13,8 +13,9 @@ try:
         timeout=1
     )
 
-    time.sleep(2)
-    ser.write(bytearray([0x01, 0, 0]))
+    #time.sleep(2)
+    #ser.write(bytearray([0x01, 0, 0]))
+    time.sleep(0.2)
     ser.close()
 
     print("-- stop.py: Stopped motors --")

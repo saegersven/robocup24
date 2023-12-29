@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <pthread.h>
+#include <time.h>
 
 #include "../libs/tensorflow/lite/c/c/c_api.h"
 
@@ -14,27 +15,49 @@
 #define WIDTH 80
 #define HEIGHT 48
 
-static TfLiteModel *model;
-static TfLiteInterpreterOptions *options;
-static TfLiteInterpreter *interpreter;
+static TfLiteModel *model = NULL;
+static TfLiteInterpreterOptions *options = NULL;
+static TfLiteInterpreter *interpreter = NULL;
 
 static float silver_outputs[2];
+static pthread_mutex_t silver_output_lock = PTHREAD_MUTEX_INITIALIZER;
 static int stop_signal;
 
 static pthread_t silver_thread_id;
 
+#define SILVER_PAUSE_NUM_FRAMES 20
+
+static int silver_pause_counter = 0;
+
 void *silver_loop(void* args) {
     pthread_detach(pthread_self());
 
-    while(!stop_signal) {
+    model = TfLiteModelCreateFromFile(SILVER_MODEL_PATH);
+    options = TfLiteInterpreterOptionsCreate();
+    TfLiteInterpreterOptionsSetNumThreads(options, 1);
+
+    interpreter = TfLiteInterpreterCreate(model, options);
+
+    if(TfLiteInterpreterAllocateTensors(interpreter) != kTfLiteOk) {
+        fprintf(stderr, "silver_init: Could not allocate tensors\n");
+        return;
+    }
+    printf("Created silver\n");
+
+    clock_t start_t = clock();
+
+    while(1) {
+        if(stop_signal) break;
+
         TfLiteTensor *input_tensor = TfLiteInterpreterGetInputTensor(interpreter, 0);
 
         // Input to model is grayscale
         float input_image_norm[WIDTH * HEIGHT];
+        memset(input_image_norm, 0, sizeof(input_image_norm));
         for(int i = 0; i < HEIGHT; i++) {
             for(int j = 0; j < WIDTH; j++) {
                 int idx = i * WIDTH + j;
-
+                input_image_norm[idx] = 0.0f;
                 for(int k = 0; k < 3; k++) {
                     input_image_norm[idx] += (float)frame[idx];
                 }
@@ -47,50 +70,70 @@ void *silver_loop(void* args) {
             return NULL;
         }
 
-        TfLiteInterpreterInvoke(interpreter);
+        if(TfLiteInterpreterInvoke(interpreter) != kTfLiteOk) {
+            fprintf(stderr, "silver_detect: Could not invoke\n");
+            return NULL;
+        }
+        //printf("Invoke\n");
 
         const TfLiteTensor *output_tensor = TfLiteInterpreterGetOutputTensor(interpreter, 0);
+        //pthread_mutex_lock(&silver_output_lock);
         TfLiteTensorCopyToBuffer(output_tensor, silver_outputs, 2 * sizeof(float));
+        //pthread_mutex_unlock(&silver_output_lock);
+    
+        clock_t now = clock();
+        //printf("%f\n", ((double)now - (double)start_t)/CLOCKS_PER_SEC*1000);
+        start_t = now;
     }
+
+    printf("Deleting Silver\n");
+    TfLiteInterpreterDelete(interpreter);
+    interpreter = NULL;
+    TfLiteInterpreterOptionsDelete(options);
+    options = NULL;
+    TfLiteModelDelete(model);
+    model = NULL;
 }
 
 void silver_init() {
-    model = TfLiteModelCreateFromFile(SILVER_MODEL_PATH);
-    options = TfLiteInterpreterOptionsCreate();
-    TfLiteInterpreterOptionsSetNumThreads(options, 1);
-
-    interpreter = TfLiteInterpreterCreate(model, options);
-
-    if(TfLiteInterpreterAllocateTensors(interpreter) != kTfLiteOk) {
-        fprintf(stderr, "silver_init: Could not allocate tensors\n");
-        return;
-    }
-
     stop_signal = 0;
+    memset(silver_outputs, 0, sizeof(silver_outputs));
     pthread_create(&silver_thread_id, NULL, silver_loop, NULL);
 }
 
 void silver_destroy() {
     stop_signal = 1;
-    pthread_join(silver_thread_id, NULL);
-
-    TfLiteInterpreterDelete(interpreter);
-    TfLiteInterpreterOptionsDelete(options);
-    TfLiteModelDelete(model);
+    delay(50);
+    pthread_cancel(silver_thread_id);
+    delay(20);
+    //printf("Join: %d\n", pthread_join(silver_thread_id, NULL));
 }
 
 void line_silver() {
-#ifdef DISPLAY_ENABLE
-    display_set_number(NUMBER_SILVER_CONFIDENCE, silver_outputs[0]);
-#endif
+    //printf("Counter: %d\n", silver_pause_counter);
+    if(silver_pause_counter > 0) {
+        silver_pause_counter--;
+        return;
+    }
 
-    if(silver_outputs[0] > silver_outputs[1]) {
+    if(num_green_pixels > 50) return;
+
+    //pthread_mutex_lock(&silver_output_lock);
+    int res = silver_outputs[0] > silver_outputs[1];
+    printf("%f\n", silver_outputs[0]);
+
+#ifdef DISPLAY_ENABLE
+    //display_set_number(NUMBER_SILVER_CONFIDENCE, silver_outputs[0]);
+#endif
+    //pthread_mutex_unlock(&silver_output_lock);
+
+    if(res) {
         printf("NN detects entrance!\n");
         robot_stop();
 
-        char path[32];
+        /*char path[64];
         sprintf(path, "/home/pi/silver/%d.png", milliseconds());
-        write_image(path, LINE_IMAGE_TO_PARAMS(frame));
+        write_image(path, LINE_IMAGE_TO_PARAMS(frame));*/
         
         robot_servo(SERVO_CAM, CAM_POS_DOWN2, false);
         delay(400);
@@ -107,13 +150,15 @@ void line_silver() {
         printf("%f\n", black_percentage);
         delay(1000);
         if(black_percentage > 0.07f) {
-            printf("Too much black\n");
-            robot_drive(80, 80, 100);
+            printf("Too many black pixels for evac zone.\n");
+            
+            // Disable silver for a few frames
+            silver_pause_counter = SILVER_PAUSE_NUM_FRAMES;
         } else {
-            printf("Real silver!\n");
+            printf("Detected entrance!\n");
             robot_drive(80, 80, 400);
             delay(3000);
-            //line_found_silver = 1;
+            line_found_silver = 1;
         }
     }
 }

@@ -32,7 +32,7 @@
 #define ARDUINO_BOOT_UP_DELAY 2000
 
 // GPIO Pins
-#define PIN_BTN 0 // TODO
+#define PIN_BTN 22 // TODO
 
 #define SERVO_CAM 0
 #define SERVO_ARM 1
@@ -58,6 +58,9 @@
 #define CAM_POS_DOWN 135
 
 #define DISTANCE_FACTOR 0.0f // TODO
+
+#define CAM_HORIZONTAL_FOV 62.0f
+#define CAM_VERTICAL_FOV 49.0f
 
 // Initialization
 void robot_init();

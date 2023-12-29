@@ -14,6 +14,17 @@ void copy_image(S_IMAGE(src), S_IMAGE(dest)) {
     memcpy(dest_d, src_d, src_w * src_h * src_c);
 }
 
+void read_raw_image(const char* path, uint8_t *img) {
+    FILE* f = fopen(path, "r");
+
+    uint32_t img_width, img_height;
+    fread(&img_width, sizeof(uint32_t), 1, f);
+    fread(&img_height, sizeof(uint32_t), 1, f);
+    fread(img, sizeof(uint8_t), img_width * img_height * 3, f);
+
+    fclose(f);
+}
+
 void write_image(const char* path, S_IMAGE(img)) {
     stbi_write_png(path, img_w, img_h, img_c, img_d, img_w * img_c);
 }

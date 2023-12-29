@@ -146,7 +146,6 @@ void robot_servo(uint8_t servo_id, uint8_t angle, bool stall) {
 }
 
 bool robot_button() {
-    return false;
     for(int i = 0; i < 4; i++) {
         if(!digitalRead(PIN_BTN)) {
             return false;
