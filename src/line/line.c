@@ -40,19 +40,41 @@ void line_stop() {
 }
 
 void line_correct_image() {
+    for(int i = 0; i < LINE_FRAME_WIDTH * LINE_FRAME_HEIGHT * 3; i++) {
+        if(frame[i] > line_correction[i]) {
+            frame[i] -= line_correction[i];
+        } else {
+            frame[i] = 0;
+        }
+    }
+}
+
+void line_black_threshold() {
+    num_black_pixels = 0;
     for(int i = 0; i < LINE_FRAME_HEIGHT; i++) {
-        if(frame[i] < )
+        for(int j = 0; j < LINE_FRAME_WIDTH; j++) {
+            int idx = i * LINE_FRAME_WIDTH + j;
+            int s = 0;
+            for(int k = 0; k < 3; k++) {
+                if(frame[i] > line_correction[i]) {
+                    s += frame[3*idx+k] - line_correction[3*idx+k];
+                }
+            }
+            if(s < BLACK_MAX_SUM) {
+                black[idx] = 0xFF;
+                ++num_black_pixels;
+            } else {
+                black[idx] = 0;
+            }
+        }
     }
 }
 
 void line() {
     camera_grab_frame(frame, LINE_FRAME_WIDTH, LINE_FRAME_HEIGHT);
 
-    line_correct_image();
-
     // Thresholding in here as some images are required by multiple functions
-    num_black_pixels = 0;
-    image_threshold(LINE_IMAGE_TO_PARAMS_GRAY(black), LINE_IMAGE_TO_PARAMS(frame), &num_black_pixels, is_black);
+    line_black_threshold();
 
     num_green_pixels = 0;
     image_threshold(LINE_IMAGE_TO_PARAMS_GRAY(green), LINE_IMAGE_TO_PARAMS(frame), &num_green_pixels, is_green);

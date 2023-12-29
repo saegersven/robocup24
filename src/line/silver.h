@@ -131,9 +131,9 @@ void line_silver() {
         printf("NN detects entrance!\n");
         robot_stop();
 
-        /*char path[64];
-        sprintf(path, "/home/pi/silver/%d.png", milliseconds());
-        write_image(path, LINE_IMAGE_TO_PARAMS(frame));*/
+        char path[64];
+        sprintf(path, "/home/pi/silver/%ld.png", milliseconds());
+        write_image(path, LINE_IMAGE_TO_PARAMS(frame));
         
         robot_servo(SERVO_CAM, CAM_POS_DOWN2, false);
         delay(400);

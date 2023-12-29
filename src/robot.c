@@ -145,6 +145,10 @@ void robot_servo(uint8_t servo_id, uint8_t angle, bool stall) {
     robot_serial_write_command(CMD_SERVO, data, 3);
 }
 
+void robot_led(bool state) {
+    robot_serial_write_command(CMD_LED, &state, 1);
+}
+
 bool robot_button() {
     for(int i = 0; i < 4; i++) {
         if(!digitalRead(PIN_BTN)) {

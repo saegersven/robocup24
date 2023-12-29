@@ -6,10 +6,10 @@
 
 #define LINE_FRAME_BOTTOM_CUT 7
 
-#define LINE_FOLLOW_K_P 70.0f
-#define LINE_FOLLOW_K_D 7.0f
-#define LINE_FOLLOW_D_DT_MAX 2.0f
-#define LINE_FOLLOW_BASE_SPEED 47
+#define LINE_FOLLOW_K_P 100.0f
+#define LINE_FOLLOW_K_D 12.0f
+#define LINE_FOLLOW_D_DT_MAX 2.5f
+#define LINE_FOLLOW_BASE_SPEED 80
 
 #define LINE_CENTER_X 40
 #define LINE_CENTER_Y 48
@@ -175,9 +175,9 @@ void line_follow() {
     float u = LINE_FOLLOW_K_P * line_angle + LINE_FOLLOW_K_D * d_dt_line_angle;
 
     float u_left = u;
-    if(u_left < 0) u_left *= 2;
+    if(u_left < 0) u_left *= 2.5;
     float u_right = -u;
-    if(u_right < 0) u_right *= 2;
+    if(u_right < 0) u_right *= 2.5;
 
     int8_t m_left = clamp(LINE_FOLLOW_BASE_SPEED + u_left, -100, 100);
     int8_t m_right = clamp(LINE_FOLLOW_BASE_SPEED + u_right, -100, 100);

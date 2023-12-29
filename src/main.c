@@ -73,6 +73,8 @@ void quit() {
     stop();
     display_destroy();
 
+    robot_led(0);
+
     exit(0);
 }
 
@@ -104,7 +106,9 @@ int main() {
 
     while(1) {
 #ifndef DISABLE_BUTTON_START
+        robot_led(1);
         button_loop(0);
+        robot_led(0);
         button_loop(1);
 #endif
 
