@@ -2,12 +2,14 @@
 
 #include <stdint.h>
 
-#include "../libs/tensorflow/lite/c/c_api.h"
+#include "../libs/tensorflow/lite/c/c/c_api.h"
+
+#include "../display/display.h"
 
 #define VICTIMS_MODEL_PATH "/home/pi/robocup24/runtime_data/victims.tflite"
 
-#define INPUT_WIDTH 240
-#define INPUT_HEIGHT 320
+#define INPUT_WIDTH 320
+#define INPUT_HEIGHT 240
 #define INPUT_CHANNELS 3
 #define MODEL_INPUT_WIDTH 320
 #define MODEL_INPUT_HEIGHT 320
@@ -46,21 +48,21 @@ void victims_destroy() {
 #define DETECTION_THRESHOLD 0.5f
 #define DEAD_THRESHOLD      0.5f
 
-int victims_detect(uint8_t *image, Victim *victims) {
+int victims_detect(uint8_t *image, struct Victim *victims) {
     TfLiteTensor *input_tensor = TfLiteInterpreterGetInputTensor(victims_interpreter, 0);
 
     float input_image_norm[MODEL_INPUT_WIDTH * MODEL_INPUT_HEIGHT * MODEL_INPUT_CHANNELS];
 
     for(int i = 0; i < MODEL_INPUT_HEIGHT; i++) {
         for(int j = 0; j < MODEL_INPUT_WIDTH; j++) {
-            int src_i = i * (float)INPUT_HEIGHT / MODEL_INPUT_HEIGHT;
-            int src_j = j * (float)INPUT_WIDTH / MODEL_INPUT_WIDTH;
+            int src_i = (float)i * (float)INPUT_HEIGHT / MODEL_INPUT_HEIGHT;
+            int src_j = (float)j * (float)INPUT_WIDTH / MODEL_INPUT_WIDTH;
             int src_idx = src_i * INPUT_WIDTH + src_j;
 
             int idx = i * MODEL_INPUT_WIDTH + j;
 
             for(int k = 0; k < MODEL_INPUT_CHANNELS; k++) {
-                input_image_norm[MODEL_INPUT_CHANNELS * idx + k] = (float)image[INPUT_CHANNELS * src_idx + k] / 255.0f;
+                input_image_norm[MODEL_INPUT_CHANNELS * idx + k] = (float)image[INPUT_CHANNELS * src_idx + k] / 127.5f - 1.0f;
             }
         }
     }
@@ -84,15 +86,17 @@ int victims_detect(uint8_t *image, Victim *victims) {
     const TfLiteTensor *output_tensor3 = TfLiteInterpreterGetOutputTensor(victims_interpreter, 3);
     TfLiteTensorCopyToBuffer(output_tensor3, classes, NUM_DETECTIONS * sizeof(float));
 
+    printf(".\n");
     int num_victims = 0;
     for(int i = 0; i < NUM_DETECTIONS; i++) {
+        printf("%f\n", confidence[i]);
         if(confidence[i] > DETECTION_THRESHOLD) {
             float ymin = boxes[i * 4 + 0];
             float xmin = boxes[i * 4 + 1];
             float ymax = boxes[i * 4 + 2];
             float xmax = boxes[i * 4 + 3];
 
-            Victim v;
+            struct Victim v;
             v.x = (xmin + xmax) / 2.0f;
             v.y = (ymin + ymax) / 2.0f;
             v.d = (xmax - xmin + ymax - ymin) / 2.0f;
@@ -111,7 +115,7 @@ int victims_detect(uint8_t *image, Victim *victims) {
 }
 
 // Returns index of victim in supplied array, or -1
-int victims_choose(Victim *victims, int num_victims, int enable_dead) {
+int victims_choose(struct Victim *victims, int num_victims, int enable_dead) {
     // We want to choose the victim that is closest (highest y-coordinate)
     // We also want to prefer living victims, even if they are further away than
     // the dead one.
@@ -144,9 +148,11 @@ int victims_choose(Victim *victims, int num_victims, int enable_dead) {
 }
 
 // Returns 1 if victim was found, 0 otherwise
-int victims_find(uint8_t *image, int enable_dead, Victim* victim) {
-    Victim *victims[NUM_DETECTIONS];
+int victims_find(uint8_t *image, int enable_dead, struct Victim* victim) {
+    struct Victim victims[NUM_DETECTIONS];
     int num_victims = victims_detect(image, victims);
+
+    printf("Num victims: %d\n", num_victims);
 
     int victim_idx = victims_choose(victims, num_victims, enable_dead);
     if(victim_idx == -1) return 0;

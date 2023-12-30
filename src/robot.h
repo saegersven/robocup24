@@ -54,14 +54,19 @@
 #define CMD_TURN    (0x05)
 #define CMD_LED     (0x06)
 
-#define CAM_POS_UP 35
+#define CAM_POS_UP 42
 #define CAM_POS_DOWN2 90
 #define CAM_POS_DOWN 135
+#define ARM_POS_DOWN 192
+#define ARM_POS_HALF_DOWN 135
+#define ARM_POS_UP 48
+#define STRING_POS_CLOSED 130
+#define STRING_POS_OPEN 30
 
 #define DISTANCE_FACTOR 0.0f // TODO
 
-#define CAM_HORIZONTAL_FOV 62.0f
-#define CAM_VERTICAL_FOV 49.0f
+#define CAM_HORIZONTAL_FOV DTOR(62.0f)
+#define CAM_VERTICAL_FOV DTOR(49.0f)
 
 // Initialization
 void robot_init();
@@ -73,7 +78,7 @@ void robot_drive(int8_t left, int8_t right, int32_t duration);
 void robot_stop();
 void robot_turn(float angle);
 void robot_led(bool state);
-void robot_servo(uint8_t servo_id, uint8_t angle, bool stall);
+void robot_servo(uint8_t servo_id, uint8_t angle, bool stall, bool nodelay);
 
 // Sensing
 bool robot_button();

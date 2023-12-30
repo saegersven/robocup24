@@ -43,7 +43,7 @@ Servo servos[NUM_SERVOS];
 #define CMD_LED     (0x06)
 
 #define CMD_LEN_MOTOR 3
-#define CMD_LEN_SERVO 4
+#define CMD_LEN_SERVO 5
 #define CMD_LEN_SENSOR 2
 #define CMD_LEN_TURN 3
 #define CMD_LEN_LED 2

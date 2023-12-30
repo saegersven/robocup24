@@ -23,7 +23,7 @@ void line_start() {
 
     read_raw_image("/home/pi/robocup24/runtime_data/line_correction.bin", line_correction);
 
-    robot_servo(SERVO_CAM, CAM_POS_DOWN, false);
+    robot_servo(SERVO_CAM, CAM_POS_DOWN, false, false);
 
 #ifdef DISPLAY_ENABLE
     display_set_mode(MODE_LINE_FOLLOW);
@@ -70,7 +70,7 @@ void line_black_threshold() {
     }
 }
 
-void line() {
+int line() {
     camera_grab_frame(frame, LINE_FRAME_WIDTH, LINE_FRAME_HEIGHT);
 
     // Thresholding in here as some images are required by multiple functions
@@ -83,5 +83,5 @@ void line() {
 
     line_follow();
     line_green();
-    line_silver();
+    return line_silver();
 }

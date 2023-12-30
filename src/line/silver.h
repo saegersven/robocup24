@@ -93,6 +93,8 @@ void *silver_loop(void* args) {
     options = NULL;
     TfLiteModelDelete(model);
     model = NULL;
+
+    return NULL;
 }
 
 void silver_init() {
@@ -109,14 +111,14 @@ void silver_destroy() {
     //printf("Join: %d\n", pthread_join(silver_thread_id, NULL));
 }
 
-void line_silver() {
+int line_silver() {
     //printf("Counter: %d\n", silver_pause_counter);
     if(silver_pause_counter > 0) {
         silver_pause_counter--;
         return;
     }
 
-    if(num_green_pixels > 50) return;
+    if(num_green_pixels > 50) return 0;
 
     //pthread_mutex_lock(&silver_output_lock);
     int res = silver_outputs[0] > silver_outputs[1];
@@ -135,11 +137,11 @@ void line_silver() {
         sprintf(path, "/home/pi/silver/%ld.png", milliseconds());
         write_image(path, LINE_IMAGE_TO_PARAMS(frame));
         
-        robot_servo(SERVO_CAM, CAM_POS_DOWN2, false);
+        robot_servo(SERVO_CAM, CAM_POS_DOWN2, false, false);
         delay(400);
         camera_grab_frame(frame, LINE_FRAME_WIDTH, LINE_FRAME_HEIGHT);
 
-        robot_servo(SERVO_CAM, CAM_POS_DOWN, false);
+        robot_servo(SERVO_CAM, CAM_POS_DOWN, false, false);
         delay(400);
 
         // Thresholding in here as some images are required by multiple functions
@@ -154,11 +156,13 @@ void line_silver() {
             
             // Disable silver for a few frames
             silver_pause_counter = SILVER_PAUSE_NUM_FRAMES;
+            return 0;
         } else {
             printf("Detected entrance!\n");
             robot_drive(80, 80, 400);
-            delay(3000);
-            line_found_silver = 1;
+            delay(100);
+            return 1;
         }
     }
+    return 0;
 }

@@ -19,7 +19,7 @@ void parse_message() {
     //digitalWrite(13, HIGH);
     m(*((int8_t*)&message[1]), *((int8_t*)&message[2]), 0);
   } else if (message[0] == CMD_SERVO) {
-    servo(message[1], message[2], message[3]);
+    servo(message[1], message[2], message[3], message[4]);
   } else if (message[0] == CMD_SENSOR) {
     int16_t value = 0;
 

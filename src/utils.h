@@ -32,8 +32,8 @@
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
-#define DTOR(x) (x/180.0f*PI)
-#define RTOD(x) (x*180.0f/PI)
+#define DTOR(x) ((x)/180.0f*PI)
+#define RTOD(x) ((x)*180.0f/PI)
 
 // Time functions
 long long milliseconds();

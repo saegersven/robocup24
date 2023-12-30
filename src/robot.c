@@ -130,19 +130,18 @@ void robot_stop() {
 void robot_turn(float angle) {
     int16_t angle_mrad = (int16_t)(angle / 1000.0f);
 
-    uint32_t time_ms = abs(angle) * 295.0f;
-
     if(angle > 0) {
-        robot_drive(60, -60, time_ms);
+        robot_drive(60, -60, angle * 800.0f);
     } else {
-        robot_drive(-60, 60, time_ms);
+        robot_drive(-60, 60, -angle * 800.0f);
     }
+    robot_stop();
 }
 
-void robot_servo(uint8_t servo_id, uint8_t angle, bool stall) {
-    uint8_t data[3] = {servo_id, angle, (uint8_t)stall};
+void robot_servo(uint8_t servo_id, uint8_t angle, bool stall, bool nodelay) {
+    uint8_t data[4] = {servo_id, angle, (uint8_t)stall, (uint8_t)nodelay};
 
-    robot_serial_write_command(CMD_SERVO, data, 3);
+    robot_serial_write_command(CMD_SERVO, data, 4);
 }
 
 void robot_led(bool state) {

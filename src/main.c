@@ -14,6 +14,7 @@
 #define STATE_RESCUE 1
 
 //#define DISABLE_BUTTON_START
+#define RESCUE_START
 
 static int state;
 static pthread_t main_thread_id;
@@ -24,16 +25,20 @@ void *main_loop(void *arg) {
     printf("MAIN THREAD START\n");
 
     // Do all the setup here
+#ifndef RESCUE_START
     state = STATE_LINE;
     line_start();
+#else
+    state = STATE_RESCUE;
+#endif
 
     while(1) {
         if(state == STATE_LINE) {
-            line();
-
-            if(line_found_silver) {
+            if(line()) {
+                printf("Found silver\n");
                 state = STATE_RESCUE;
                 line_stop();
+                delay(200);
             }
         } else {
             rescue();
@@ -57,7 +62,7 @@ void stop() {
     if(state == STATE_LINE) {
         line_stop();
     } else if(state == STATE_RESCUE) {
-        //rescue_stop();
+        rescue_cleanup();
     }
     //robot_serial_close();
     //robot_serial_init();

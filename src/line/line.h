@@ -8,6 +8,6 @@
 
 static int line_found_silver;
 
-void line();
+int line();
 void line_stop();
 void line_start();

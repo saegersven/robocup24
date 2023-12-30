@@ -101,7 +101,7 @@ void m(int8_t left, int8_t right) {
   m(left, right, 0);
 }
 
-void servo(uint8_t id, uint8_t angle, bool stall) {
+void servo(uint8_t id, uint8_t angle, bool stall, bool nodelay) {
   /*Serial.print("Moving servo: ");
   Serial.print(id);
   Serial.print(" angle: ");
@@ -118,9 +118,10 @@ void servo(uint8_t id, uint8_t angle, bool stall) {
 
   if(!servos[id].attached()) servos[id].attach(servo_pins[id]);
 
+  int prev_angle = servos[id].read();
   servos[id].write(angle);
 
-  delay(angle * 8);
+  if(!nodelay) delay(abs(angle - prev_angle) * 8);
 
   if(!stall) servos[id].detach();
 }
