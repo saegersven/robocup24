@@ -7,6 +7,8 @@
 #include <EEPROM.h>
 #include <VL53L0X.h>
 #include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BNO055.h>
 
 #include "defines.h"
 
@@ -23,14 +25,14 @@ void parse_message() {
   } else if (message[0] == CMD_SERVO) {
     servo(message[1], message[2], message[3], message[4]);
   } else if (message[0] == CMD_SENSOR) {
-    int16_t value = 0;
+    int16_t value = -1;
 
     if (message[1] == SENSOR_PITCH) {
       update_orientation();
-      value = (int16_t)(get_pitch() / 1000.0f);
+      value = (int16_t)(get_pitch() * 1000.0f);
     } else if (message[1] == SENSOR_HEADING) {
       update_orientation();
-      value = (int16_t)(get_heading() / 1000.0f);
+      value = (int16_t)(get_heading() * 1000.0f);
     } else if (message[1] >= SENSOR_DIST_START && message[1] <= SENSOR_DIST_END) {
       // One of the distance sensors
       int sensor_id = message[1] - SENSOR_DIST_START;
@@ -42,7 +44,7 @@ void parse_message() {
 
     Serial.write((uint8_t*)&value, 2);
   } else if (message[0] == CMD_TURN) {
-
+    turn(*((int16_t*)&message[1]));
   } else if (message[0] == CMD_LED) {
     digitalWrite(13, message[1]);
   }

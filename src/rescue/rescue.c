@@ -18,14 +18,18 @@ void rescue_collect_victim() {
     robot_servo(SERVO_ARM, ARM_POS_HALF_DOWN, false, false);
     delay(800);
     robot_drive(70, 70, 0);
-    delay(100);
+    delay(150);
     robot_servo(SERVO_ARM, ARM_POS_DOWN, true, true);
-    delay(200);
+    delay(100);
     robot_stop();
-    robot_servo(SERVO_ARM, ARM_POS_DOWN, false, true);
+    delay(300);
+    robot_servo(SERVO_ARM, ARM_POS_DOWN, true, true);
     robot_drive(-70, -70, 200);
     robot_drive(70, 70, 200);
+    delay(200);
     robot_servo(SERVO_STRING, STRING_POS_CLOSED, false, false);
+    delay(450);
+    robot_drive(-70, -70, 600);
     robot_servo(SERVO_ARM, ARM_POS_UP, false, false);
     robot_servo(SERVO_STRING, STRING_POS_OPEN, false, false);
     delay(500);
@@ -44,6 +48,8 @@ int rescue_collect(int find_dead) {
 	int CAM_COLLECT_POS = CAM_POS_DOWN - 15;
 	int cam_angle = CAM_POS_UP;
 
+	int dist_mode = 1;
+
 	while(1) {
 		robot_stop();
 		delay(300);
@@ -53,37 +59,58 @@ int rescue_collect(int find_dead) {
 		if(victims_find(frame, find_dead, &victim)) {
 			display_set_number(NUMBER_RESCUE_POS_X, victim.x);
 			display_set_number(NUMBER_RESCUE_POS_Y, victim.y);
-			display_set_number(NUMBER_RESCUE_IS_DEAD, victim.dead);
+			display_set_number(NUMBER_RESCUE_IS_DEAD, victim.dead + 1);
 
 			float angle_horizontal = (victim.x - 0.5f) * CAM_HORIZONTAL_FOV;
-			printf("Turning %f\n °\n", RTOD(angle_horizontal));
-			robot_turn(angle_horizontal * 0.2f); // TEMP FACTOR
+			robot_turn(angle_horizontal); // TEMP FACTOR
 
-			float angle_vertical = (victim.y - 0.5f) * CAM_VERTICAL_FOV;
-			float u_cam = angle_vertical * CAM_K_P;
-			cam_angle += RTOD(u_cam);
-			if(cam_angle < CAM_POS_UP) cam_angle = CAM_POS_UP;
-			if(cam_angle > CAM_COLLECT_POS) cam_angle = CAM_COLLECT_POS;
-			robot_servo(SERVO_CAM, cam_angle, false, false);
-			delay(300);
-
-			float alpha = (float)CAM_POS_DOWN - (float)cam_angle;
-			float dist = sinf(DTOR(alpha) - angle_vertical);
-			printf("%f\n", dist);
-
-			if(dist < 0.2f) {
-				robot_drive(-60, -60, 130);
-			} else if(dist > 0.4f) {
-				robot_drive(80, 80, 200);
-			} else {
-				robot_stop();
+			if(dist_mode) {
+				float angle_vertical = (victim.y - 0.5f) * CAM_VERTICAL_FOV;
+				float u_cam = angle_vertical * CAM_K_P;
+				cam_angle += RTOD(u_cam);
+				if(cam_angle < CAM_POS_UP) cam_angle = CAM_POS_UP;
+				if(cam_angle > CAM_COLLECT_POS) cam_angle = CAM_COLLECT_POS;
+				robot_servo(SERVO_CAM, cam_angle, false, false);
 				delay(100);
-				robot_turn(angle_horizontal + DTOR(22.0f));
 
-				robot_drive(-60, -60, 150);
-				rescue_collect_victim();
+				float alpha = (float)CAM_POS_DOWN + 5 - (float)cam_angle;
+				float dist = tanf(DTOR(alpha) - angle_vertical);
+				if(DTOR(alpha) - angle_vertical > DTOR(90.0f)) {
+					dist = 30.0f;
+				}
 
-				return victim.dead ? 2 : 1;
+				printf("%f\n", alpha);
+
+				printf("Dist: %f\n", dist);
+				int dur = clamp((dist - 0.4f) * 300, -150, 700);
+				printf("Driving: %d\n", dur);
+
+				robot_drive(60, 60, dur);
+				cam_angle += 5;
+				robot_servo(SERVO_CAM, cam_angle, false, false);
+				delay(50);
+
+				if(dist > 0.3f && dist < 0.5f) {
+					dist_mode = 0;
+					robot_servo(SERVO_CAM, CAM_POS_DOWN3, false, false);
+					delay(200);
+				}
+			} else {
+				if(victim.y > 0.5f && victim.y < 0.6f) {
+					robot_stop();
+					delay(100);
+					robot_turn(angle_horizontal + DTOR(22.0f));
+
+					//robot_drive(-60, -60, 150);
+					rescue_collect_victim();
+
+					return victim.dead ? 2 : 1;
+				} else {
+					int dur = (0.55f - victim.y) * 500;
+					if(dur < 0) dur = clamp(dur, -150, -50);
+					if(dur > 0) dur = clamp(dur, 50, 150);
+					robot_drive(50, 50, dur);
+				}
 			}
 
 			/*if(cam_angle >= CAM_COLLECT_POS && angle_vertical > DTOR(20.0f)) {
@@ -100,6 +127,7 @@ int rescue_collect(int find_dead) {
 		} else {
 			display_set_number(NUMBER_RESCUE_POS_X, 0.0f);
 			display_set_number(NUMBER_RESCUE_POS_Y, 0.0f);
+			display_set_number(NUMBER_RESCUE_IS_DEAD, 0.0f);
 
 			robot_turn(DTOR(30.0f));
 		}
@@ -150,7 +178,7 @@ void rescue() {
 	while(num_victims < 3) {
 		display_set_number(NUMBER_RESCUE_NUM_VICTIMS, num_victims);
 
-		int ret = rescue_collect(num_victims < 2);
+		int ret = rescue_collect(num_victims > 2);
 		rescue_deliver(ret == 2);
 		
 		num_victims++;

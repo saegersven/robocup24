@@ -107,8 +107,8 @@ void draw_image(uint8_t *image, int image_w, int image_h, int image_c, int x_pos
 #define MAX_GLYPH_HEIGHT 21
 #define NUM_GLYPHS 45
 
-#define FNT_FILE_PATH "../runtime_data/font.bin"
-#define IMG_FILE_PATH "../runtime_data/font_0.bin"
+#define FNT_FILE_PATH "/home/pi/robocup24/runtime_data/font.bin"
+#define IMG_FILE_PATH "/home/pi/robocup24/runtime_data/font_0.bin"
 
 typedef struct Glyph {
     uint8_t pixels[MAX_GLYPH_WIDTH * MAX_GLYPH_HEIGHT];

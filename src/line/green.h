@@ -175,7 +175,7 @@ void line_green() {
         delay(50);
         robot_drive(80, 80, DISTANCE_FACTOR * (distance - 50));
 
-        robot_drive(60, 60, 200);
+        robot_drive(60, 60, 270);
 
         if(green_result == RESULT_DEAD_END) {
             robot_turn(R180);

@@ -128,7 +128,7 @@ void robot_stop() {
 }
 
 void robot_turn(float angle) {
-    int16_t angle_mrad = (int16_t)(angle / 1000.0f);
+    /*int16_t angle_mrad = (int16_t)(angle / 1000.0f);
 
     float angle_abs = angle < 0 ? -angle : angle;
     // Curve fit
@@ -139,7 +139,14 @@ void robot_turn(float angle) {
     } else {
         robot_drive(-60, 60, t);
     }
-    robot_stop();
+    robot_stop();*/
+
+    int16_t angle_mrad = (int16_t)(angle * 1000.0f);
+
+    robot_serial_write_command(CMD_TURN, &angle_mrad, 2);
+
+    uint8_t value = 0;
+    while(robot_serial_read(&value, 1) != 1 && value != 1);
 }
 
 void robot_servo(uint8_t servo_id, uint8_t angle, bool stall, bool nodelay) {
@@ -166,7 +173,7 @@ int16_t robot_sensor(uint8_t sensor_id) {
 
     robot_serial_write_command(CMD_SENSOR, &sensor_id, 1);
     
-    robot_serial_read(&value, 2);
+    if(robot_serial_read(&value, 2) != 2) printf("robot_sensor: Read failed\n");
 
     return value;
 }

@@ -28,6 +28,9 @@ Servo servos[NUM_SERVOS];
 #define NUM_DIST_SENSORS 1
 VL53L0X dist_sensors[NUM_DIST_SENSORS];
 
+Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
+static float heading, pitch;
+
 #define SENSOR_PITCH 10
 #define SENSOR_HEADING 11
 
@@ -41,6 +44,13 @@ VL53L0X dist_sensors[NUM_DIST_SENSORS];
 #define CMD_TURN    (0x05)
 
 #define CMD_LED     (0x06)
+
+
+#define BYTE_TURN_DONE (0x01)
+#define MIN_TIME_PER_DEG 4
+#define MAX_TIME_PER_DEG 10
+#define TURN_TOLERANCE 11
+
 
 #define CMD_LEN_MOTOR 3
 #define CMD_LEN_SERVO 5

@@ -86,10 +86,8 @@ int victims_detect(uint8_t *image, struct Victim *victims) {
     const TfLiteTensor *output_tensor3 = TfLiteInterpreterGetOutputTensor(victims_interpreter, 3);
     TfLiteTensorCopyToBuffer(output_tensor3, classes, NUM_DETECTIONS * sizeof(float));
 
-    printf(".\n");
     int num_victims = 0;
     for(int i = 0; i < NUM_DETECTIONS; i++) {
-        printf("%f\n", confidence[i]);
         if(confidence[i] > DETECTION_THRESHOLD) {
             float ymin = boxes[i * 4 + 0];
             float xmin = boxes[i * 4 + 1];

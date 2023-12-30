@@ -33,12 +33,17 @@ void init_robot() {
 
   dist_sensors[0].setMeasurementTimingBudget(20000);
   dist_sensors[0].setTimeout(100);
-  
+  dist_sensors[0].setAddress(0x8A);
+
   if(!dist_sensors[0].init()) {
     panic();
   }
 
   dist_sensors[0].startContinuous();
+
+  if(!bno.begin()) {
+    panic();
+  }
 
   /*
   Serial.print("Start up battery voltage: ");
@@ -113,6 +118,57 @@ void m(int8_t left, int8_t right) {
   m(left, right, 0);
 }
 
+void turn(int16_t angle_mrad) {
+  float angle_rad = (float)angle_mrad / 1000.0f;
+  float angle_deg = angle_rad * 180.0f / 3.141592f;
+
+  if(abs(angle_deg) <= 30) {
+    int duration = powf(abs(angle_rad), 0.8f) * 340.0f;
+    if(angle_deg < 0) {
+      m(-60, 60, duration);
+    } else {
+      m(60, -60, duration);
+    }
+
+    Serial.write(BYTE_TURN_DONE);
+    return;
+  }
+
+  if(angle_deg > 30) angle_deg -= 3;
+  if(angle_deg < -30) angle_deg += 3;
+  if(angle_deg == 0) return;
+
+  int min_duration = MIN_TIME_PER_DEG * abs(angle_deg);
+  int max_duration = MAX_TIME_PER_DEG * abs(angle_deg);
+
+  update_orientation();
+  float current_heading = get_heading() * 180.0f / PI;
+  float final_heading = current_heading + angle_deg;
+
+  if(final_heading > 360.0f) final_heading -= 360.0f;
+  if(final_heading < 0.0f) final_heading += 360.0f;
+
+  if(angle_deg < 0) {
+    m(-60, 60, 0);
+  } else {
+    m(60, -60, 0);
+  }
+
+  long long start_time = millis();
+
+  while(millis() - start_time < min_duration);
+  while(millis() - start_time < max_duration) {
+    update_orientation();
+    float heading = get_heading() * 180.0f / PI;
+
+    if(abs(heading - final_heading) < TURN_TOLERANCE) break;
+  }
+
+  m(0, 0, 50);
+
+  Serial.write(BYTE_TURN_DONE);
+}
+
 void servo(uint8_t id, uint8_t angle, bool stall, bool nodelay) {
   /*Serial.print("Moving servo: ");
   Serial.print(id);
@@ -139,21 +195,19 @@ void servo(uint8_t id, uint8_t angle, bool stall, bool nodelay) {
 }
 
 void update_orientation() {
-  /*
   sensors_event_t orientation_data;
   bno.getEvent(&orientation_data, Adafruit_BNO055::VECTOR_EULER);
   heading = orientation_data.orientation.x / 180.0f * PI;
   pitch = orientation_data.orientation.z / 180.0f * PI;
-  */
 }
 
 float get_heading() {
-  float heading = -1.0f;
+  //float heading = -1.0f;
   return heading;
 }
 
 float get_pitch() {
-  float pitch = -1.0f;
+  //float pitch = -1.0f;
   return pitch;
 }
 
