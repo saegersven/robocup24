@@ -25,8 +25,8 @@ int servo_pins[NUM_SERVOS] = {3, A0, 2};
 
 Servo servos[NUM_SERVOS];
 
-#define NUM_DIST_SENSORS 6
-// TODO: Dist sensor definitions
+#define NUM_DIST_SENSORS 1
+VL53L0X dist_sensors[NUM_DIST_SENSORS];
 
 #define SENSOR_PITCH 10
 #define SENSOR_HEADING 11

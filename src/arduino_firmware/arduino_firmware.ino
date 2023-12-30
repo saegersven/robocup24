@@ -5,6 +5,8 @@
 
 #include <Servo.h>
 #include <EEPROM.h>
+#include <VL53L0X.h>
+#include <Wire.h>
 
 #include "defines.h"
 

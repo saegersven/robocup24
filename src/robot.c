@@ -94,7 +94,7 @@ void robot_serial_write_command(uint8_t command, uint8_t *data, uint8_t len) {
 }
 
 int robot_serial_read(uint8_t *data, uint8_t len) {
-    tcflush(serial_fd, TCIFLUSH);
+    //tcflush(serial_fd, TCIFLUSH);
 
     int n = read(serial_fd, data, len);
     if(n < 0) {
@@ -130,10 +130,14 @@ void robot_stop() {
 void robot_turn(float angle) {
     int16_t angle_mrad = (int16_t)(angle / 1000.0f);
 
+    float angle_abs = angle < 0 ? -angle : angle;
+    // Curve fit
+    float t = powf(angle_abs, 0.8f) * 340.0f;
+
     if(angle > 0) {
-        robot_drive(60, -60, angle * 800.0f);
+        robot_drive(60, -60, t);
     } else {
-        robot_drive(-60, 60, -angle * 800.0f);
+        robot_drive(-60, 60, t);
     }
     robot_stop();
 }

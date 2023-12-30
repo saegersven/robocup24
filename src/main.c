@@ -34,7 +34,8 @@ void *main_loop(void *arg) {
 
     while(1) {
         if(state == STATE_LINE) {
-            if(line()) {
+            int ret = line();
+            if(ret == 1) {
                 printf("Found silver\n");
                 state = STATE_RESCUE;
                 line_stop();

@@ -46,7 +46,7 @@ int rescue_collect(int find_dead) {
 
 	while(1) {
 		robot_stop();
-		delay(100);
+		delay(300);
 		camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
 		delay(100);
 
@@ -72,13 +72,13 @@ int rescue_collect(int find_dead) {
 			printf("%f\n", dist);
 
 			if(dist < 0.2f) {
-				robot_drive(-60, -60, 150);
+				robot_drive(-60, -60, 130);
 			} else if(dist > 0.4f) {
 				robot_drive(80, 80, 200);
 			} else {
 				robot_stop();
 				delay(100);
-				robot_turn(angle_horizontal + DTOR(20.0f));
+				robot_turn(angle_horizontal + DTOR(22.0f));
 
 				robot_drive(-60, -60, 150);
 				rescue_collect_victim();

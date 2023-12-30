@@ -16,6 +16,7 @@ const char* RESULT_STR[4] = {"", "LEFT", "RIGHT", "DEAD-END"};
 #define CUT_WIDTH 30
 #define CUT_HEIGHT 30
 
+#define GROUP_Y_CHECK_CUTOFF 10
 #define GROUP_Y_MIN 15
 #define GROUP_Y_MAX 36
 
@@ -88,8 +89,10 @@ uint8_t line_green_direction(float *global_average_x, float *global_average_y) {
     // of a dead-end or late evaluation of green points behind a line, when the lower line is
     // already out of the frame
     for(int i = 0; i < num_groups; i++) {
-        if(groups[i].center_y < GROUP_Y_MIN) return 0;
-        if(groups[i].center_y > GROUP_Y_MAX) return 0;
+        if(groups[i].center_y > GROUP_Y_CHECK_CUTOFF) {
+            if(groups[i].center_y < GROUP_Y_MIN) return 0;
+            if(groups[i].center_y > GROUP_Y_MAX) return 0;
+        }
     }
 
     *global_average_x = 0.0f;

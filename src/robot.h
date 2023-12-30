@@ -73,6 +73,9 @@ void robot_init();
 void robot_serial_init();
 void robot_serial_close();
 
+void robot_serial_write_command(uint8_t command, uint8_t *data, uint8_t len);
+int robot_serial_read(uint8_t *data, uint8_t len);
+
 // Movement
 void robot_drive(int8_t left, int8_t right, int32_t duration);
 void robot_stop();

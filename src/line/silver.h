@@ -42,7 +42,7 @@ void *silver_loop(void* args) {
         fprintf(stderr, "silver_init: Could not allocate tensors\n");
         return;
     }
-    printf("Created silver\n");
+    //printf("Created silver\n");
 
     clock_t start_t = clock();
 
@@ -86,7 +86,7 @@ void *silver_loop(void* args) {
         start_t = now;
     }
 
-    printf("Deleting Silver\n");
+    //printf("Deleting Silver\n");
     TfLiteInterpreterDelete(interpreter);
     interpreter = NULL;
     TfLiteInterpreterOptionsDelete(options);
@@ -115,7 +115,7 @@ int line_silver() {
     //printf("Counter: %d\n", silver_pause_counter);
     if(silver_pause_counter > 0) {
         silver_pause_counter--;
-        return;
+        return 0;
     }
 
     if(num_green_pixels > 50) return 0;

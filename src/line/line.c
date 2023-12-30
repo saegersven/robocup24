@@ -5,6 +5,7 @@
 #include "follow.h"
 #include "green.h"
 #include "red.h"
+#include "obstacle.h"
 #include "silver.h"
 #include "../vision.h"
 #include "../utils.h"
@@ -83,5 +84,8 @@ int line() {
 
     line_follow();
     line_green();
-    return line_silver();
+    line_obstacle();
+
+    int ret = line_silver();
+    return ret;
 }

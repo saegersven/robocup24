@@ -28,6 +28,18 @@ void init_robot() {
     }
   }
   pinMode(13, OUTPUT);
+
+  Wire.begin();
+
+  dist_sensors[0].setMeasurementTimingBudget(20000);
+  dist_sensors[0].setTimeout(100);
+  
+  if(!dist_sensors[0].init()) {
+    panic();
+  }
+
+  dist_sensors[0].startContinuous();
+
   /*
   Serial.print("Start up battery voltage: ");
   Serial.print(start_up_bat_voltage);
@@ -146,15 +158,25 @@ float get_pitch() {
 }
 
 int16_t distance(int sensor_id) {
-  int16_t dist = 42; //int16_t dist = dist_sensors[sensor_id].readRangeSingleMillimeters();
-  /*
+  int16_t dist = dist_sensors[sensor_id].readRangeContinuousMillimeters();
+  if(dist_sensors[sensor_id].timeoutOccurred()) return 42;
+
   if(dist < 0) dist = 0;
   if(dist > 2000) dist = 2000;
-  */
+  
   return dist;
 }
 
 // returns current battery voltage in V (!!! actual battery voltage is around 0.8V higher due to voltage drop accross diodes)
 float get_battery_voltage() {
   return analogRead(PIN_BATTERY_VOLTAGE) * (15.74 / 880);
+}
+
+void panic() {
+  while(true) {
+    digitalWrite(13, HIGH);
+    delay(200);
+    digitalWrite(13, LOW);
+    delay(200);
+  }
 }
