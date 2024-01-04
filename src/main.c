@@ -14,7 +14,9 @@
 #define STATE_RESCUE 1
 
 //#define DISABLE_BUTTON_START
-#define RESCUE_START
+//#define RESCUE_START
+
+#define LINE_CAPTURE_MODE // turn off motors and save a frame every 200 ms
 
 static int state;
 static pthread_t main_thread_id;
