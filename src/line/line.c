@@ -81,8 +81,8 @@ int line() {
     image_threshold(LINE_IMAGE_TO_PARAMS_GRAY(green), LINE_IMAGE_TO_PARAMS(frame), &num_green_pixels, is_green);
 
     //write_image("black.png", LINE_IMAGE_TO_PARAMS_GRAY(black));
-
     int ret = 0;
+    printf("Saving...\n");
 
 #ifndef LINE_CAPTURE_MODE
     line_follow();
@@ -92,9 +92,10 @@ int line() {
     ret = line_silver();
 #else
     char filename[64];
-    snprintf(filename, "/home/pi/capture/%lld.png", milliseconds());
+    printf("%lld\n", milliseconds());
+    sprintf(filename, "/home/pi/capture/%lld.png", milliseconds());
     write_image(filename, LINE_IMAGE_TO_PARAMS(frame));
-    delay(200);
+    delay(84);
 #endif
 
     return ret;

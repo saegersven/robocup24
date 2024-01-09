@@ -5,6 +5,7 @@
 
 #define LINE_CAPTURE_WIDTH 320
 #define LINE_CAPTURE_HEIGHT 192
+#define LINE_CAPTURE_MODE // turn off motors and save a frame every 200 ms
 
 static int line_found_silver;
 

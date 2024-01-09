@@ -4,20 +4,10 @@
 #include <unistd.h>
 
 long long milliseconds() {
-    long            ms; // Milliseconds
-    time_t          s;  // Seconds
-    struct timespec spec;
+    struct timeval tv;
 
-    clock_gettime(CLOCK_REALTIME, &spec);
-
-    s  = spec.tv_sec;
-    ms = round(spec.tv_nsec / 1.0e6); // Convert nanoseconds to milliseconds
-    if (ms > 999) {
-        s++;
-        ms = 0;
-    }
-
-    return ms;
+    gettimeofday(&tv, NULL);
+    return (((long long)tv.tv_sec)*1000 + tv.tv_usec/1000);
 }
 
 long long microseconds() {
