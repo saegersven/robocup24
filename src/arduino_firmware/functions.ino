@@ -33,7 +33,7 @@ void init_robot() {
 
   dist_sensors[0].setMeasurementTimingBudget(20000);
   dist_sensors[0].setTimeout(100);
-  dist_sensors[0].setAddress(0x8A);
+  //dist_sensors[0].setAddress(0x8A);
 
   if(!dist_sensors[0].init()) {
     panic();

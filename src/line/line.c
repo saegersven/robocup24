@@ -82,7 +82,6 @@ int line() {
 
     //write_image("black.png", LINE_IMAGE_TO_PARAMS_GRAY(black));
     int ret = 0;
-    printf("Saving...\n");
 
 #ifndef LINE_CAPTURE_MODE
     line_follow();

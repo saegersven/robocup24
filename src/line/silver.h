@@ -51,6 +51,9 @@ void *silver_loop(void* args) {
 
         TfLiteTensor *input_tensor = TfLiteInterpreterGetInputTensor(interpreter, 0);
 
+        uint8_t frame_copy[LINE_FRAME_WIDTH * LINE_FRAME_HEIGHT * 3];
+        memcpy(frame_copy, frame, sizeof(frame));
+
         // Input to model is grayscale
         float input_image_norm[WIDTH * HEIGHT];
         memset(input_image_norm, 0, sizeof(input_image_norm));
@@ -59,7 +62,7 @@ void *silver_loop(void* args) {
                 int idx = i * WIDTH + j;
                 input_image_norm[idx] = 0.0f;
                 for(int k = 0; k < 3; k++) {
-                    input_image_norm[idx] += (float)frame[idx];
+                    input_image_norm[idx] += (float)frame_copy[3*idx + k];
                 }
                 input_image_norm[idx] /= 3.0f;
             }
@@ -81,6 +84,12 @@ void *silver_loop(void* args) {
         TfLiteTensorCopyToBuffer(output_tensor, silver_outputs, 2 * sizeof(float));
         //pthread_mutex_unlock(&silver_output_lock);
     
+        if(silver_outputs[0] > 0.5f) {
+            char path[64];
+            sprintf(path, "/home/pi/silver/%lld.png", milliseconds());
+            write_image(path, LINE_IMAGE_TO_PARAMS(frame_copy));
+        }
+
         clock_t now = clock();
         //printf("%f\n", ((double)now - (double)start_t)/CLOCKS_PER_SEC*1000);
         start_t = now;
@@ -133,9 +142,9 @@ int line_silver() {
         printf("NN detects entrance!\n");
         robot_stop();
 
-        char path[64];
-        sprintf(path, "/home/pi/silver/%ld.png", milliseconds());
-        write_image(path, LINE_IMAGE_TO_PARAMS(frame));
+        //char path[64];
+        //sprintf(path, "/home/pi/silver/%lld.png", milliseconds());
+        //write_image(path, LINE_IMAGE_TO_PARAMS(frame));
         
         robot_servo(SERVO_CAM, CAM_POS_DOWN2, false, false);
         delay(400);
