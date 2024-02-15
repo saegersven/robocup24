@@ -42,9 +42,6 @@ void corner_destroy() {
     TfLiteModelDelete(corner_model);
 }
 
-// Macro for indexing image arrays
-#define IDX(dx, dy) (MODEL_OUTPUT_CHANNELS * ((i + (dy)) * MODEL_OUTPUT_WIDTH + j + (dx)) + k)
-
 float corner_detect(uint8_t *input, int green) {
     TfLiteTensor *input_tensor = TfLiteInterpreterGetInputTensor(corner_interpreter, 0);
 
@@ -76,20 +73,12 @@ float corner_detect(uint8_t *input, int green) {
     TfLiteTensorCopyToBuffer(output_tensor, output, sizeof(output));
 
     float output_blurred[MODEL_OUTPUT_WIDTH * MODEL_OUTPUT_HEIGHT];
-    memset(output_blurred, 0, sizeof(output_blurred));
-    for(int i = 1; i < MODEL_OUTPUT_HEIGHT - 1; i++) {
-        for(int j = 1; j < MODEL_OUTPUT_WIDTH - 1; j++) {
-            int k = green;
-            output_blurred[i * MODEL_OUTPUT_WIDTH + j] = (output[IDX(-1, -1)] + output[IDX(-1, 1)] + output[IDX(1, 1)] + output[IDX(1, -1)]) / 16.0f + 
-                                        (output[IDX(-1, 0)] + output[IDX(0, -1)] + output[IDX(1, 0)] + output[IDX(0, 1)]) / 8.0f +
-                                        output[IDX(0, 0)] / 4.0f;
-        }
-    }
+    box_blur(output, MODEL_OUTPUT_WIDTH, MODEL_OUTPUT_HEIGHT, MODEL_OUTPUT_CHANNELS, output_blurred, 5, 2); // TODO: adjust parameters
 
     int num_pixels = 0;
     for(int i = 0; i < MODEL_OUTPUT_HEIGHT; i++) {
         for(int j = 0; j < MODEL_OUTPUT_WIDTH; j++) {
-            int idx = i * MODEL_OUTPUT_WIDTH + j;
+            int idx = MODEL_OUTPUT_CHANNELS * (i * MODEL_OUTPUT_WIDTH + j) + green;
             if(output_blurred[idx] > 0.5f) {
                 num_pixels++;
                 x += j;
