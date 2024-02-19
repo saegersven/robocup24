@@ -32,9 +32,10 @@ Servo servos[NUM_SERVOS];
 
 #define NUM_DIST_SENSORS 3
 VL53L0X dist_sensors[NUM_DIST_SENSORS];
-#define dist_sensors_addresses {0x01, 0x02, 0x03}
+
+byte dist_sensors_addresses[NUM_DIST_SENSORS] = {0x01, 0x02, 0x03};
 // first sensor; first | second; first | second | third 
-#define dist_sensors_bitmasks {B01000000, B01100000, B01100010}
+byte dist_sensors_bitmasks[NUM_DIST_SENSORS] = {B01000000, B01100000, B01100010};
 
 Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
 static float heading, pitch;
