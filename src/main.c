@@ -16,7 +16,6 @@
 //#define DISABLE_BUTTON_START
 //#define RESCUE_START
 
-
 static int state;
 static pthread_t main_thread_id;
 

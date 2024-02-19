@@ -146,7 +146,15 @@ void robot_turn(float angle) {
     robot_serial_write_command(CMD_TURN, &angle_mrad, 2);
 
     uint8_t value = 0;
-    while(robot_serial_read(&value, 1) != 1 && value != 1);
+
+    // ten second timeout
+    for(int i = 0; i < 10000; i++) {
+        if(robot_serial_read(&value, 1) == 1 && value == 1) {
+            break;
+        }
+
+        usleep(1000);
+    }
 }
 
 void robot_servo(uint8_t servo_id, uint8_t angle, bool stall, bool nodelay) {

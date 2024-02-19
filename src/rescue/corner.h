@@ -42,7 +42,7 @@ void corner_destroy() {
     TfLiteModelDelete(corner_model);
 }
 
-float corner_detect(uint8_t *input, int green) {
+int corner_detect(uint8_t *input, float *x, int green) {
     TfLiteTensor *input_tensor = TfLiteInterpreterGetInputTensor(corner_interpreter, 0);
 
     float input_image[MODEL_INPUT_WIDTH * MODEL_INPUT_HEIGHT * MODEL_INPUT_CHANNELS];
@@ -81,15 +81,17 @@ float corner_detect(uint8_t *input, int green) {
             int idx = MODEL_OUTPUT_CHANNELS * (i * MODEL_OUTPUT_WIDTH + j) + green;
             if(output_blurred[idx] > 0.5f) {
                 num_pixels++;
-                x += j;
+                *x += j;
             }
         }
     }
     if(num_pixels > 10) {
-        x /= num_pixels;
-        x /= MODEL_OUTPUT_WIDTH;
+        *x /= num_pixels;
+        *x /= MODEL_OUTPUT_WIDTH;
+        *x += 0.5f;
         return 1;
     }
+    
     x = 0.0f;
     return 0;
 }

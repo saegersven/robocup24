@@ -48,3 +48,64 @@ void resize_image(S_IMAGE(src), S_IMAGE(dest), int new_width, int new_height) {
         }
     }
 }
+
+void box_blur(S_IMAGE(src), uint8_t *dest, int kernel_size, int iterations) {
+    uint8_t src_arr[src_w * src_h * src_c];
+    memcpy(src_arr, src_d, sizeof(uint8_t) * src_w * src_h * src_c);
+    
+    memset(dest, 0, sizeof(uint8_t) * src_w * src_h * src_c);
+
+    for(int it = 0; it < iterations; it++) {
+        for(int i = 0; i < src_h; i++) {
+            for(int j = 0; j < src_w; j++) {
+                for(int k = 0; k < src_c; k++) {
+                    int idx = src_c * (i * src_w + j) + k;
+
+                    int kernel_size_y = kernel_size; 
+                    if(i - kernel_size / 2 < 0) {
+                        kernel_size_y += i - kernel_size / 2;
+                    }
+                    if(i + kernel_size / 2 > src_h - 1) {
+                        kernel_size_y -= i + kernel_size / 2 - src_h + 1;
+                    }
+                    
+                    int kernel_size_x = kernel_size;
+                    if(j - kernel_size / 2 < 0) {
+                        kernel_size_x += j - kernel_size / 2;
+                    }
+                    if(j + kernel_size / 2 > src_w - 1) {
+                        kernel_size_x -= j + kernel_size / 2 - src_w + 1;
+                    }
+                    
+                    int kernel_area = kernel_size_x * kernel_size_y;
+                    
+                    int accumulator = 0;
+                    for(int x = -kernel_size / 2; x < kernel_size / 2 + 1; x++) {
+                        int x_idx = j + x;
+                        
+                        if(x_idx < 0 || x_idx > src_w - 1) {
+                            continue;
+                        }
+                        
+                        for(int y = -kernel_size / 2; y < kernel_size / 2 + 1; y++) {
+                            int y_idx = i + y;
+                            
+                            if(y_idx < 0 || x_idx > src_h - 1) {
+                                continue;
+                            }
+                            
+                            int k_idx = src_c * (y_idx * src_w + x_idx) + k;
+                            accumulator += src_arr[k_idx];
+                        }
+                    }
+                    
+                    dest[idx] = accumulator / kernel_area;
+                }
+            }
+        }
+        
+        if(it != iterations - 1) {
+            memcpy(src_arr, dest, sizeof(uint8_t) * src_w * src_h * src_c);
+        }
+    }
+}

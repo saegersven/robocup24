@@ -20,3 +20,6 @@ void read_raw_image(const char* path, uint8_t *img);
 void write_image(const char* path, S_IMAGE(img));
 
 void resize_image(S_IMAGE(src), S_IMAGE(dest), int new_width, int new_height);
+
+// Needed for corner
+void box_blur(S_IMAGE(src), uint8_t *dest, int kernel_size, int iterations);
