@@ -25,14 +25,6 @@ void *main_loop(void *arg) {
 
     printf("MAIN THREAD START\n");
 
-    camera_start_capture(320, 192);
-    uint8_t frame[320 * 192 * 3];
-    while(1) {
-        camera_grab_frame(frame, 320, 192);
-
-        printf("%d\n", frame[600]);
-    }
-
     // Do all the setup here
 #ifndef RESCUE_START
     state = STATE_LINE;

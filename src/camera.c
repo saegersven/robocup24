@@ -67,36 +67,30 @@ void camera_stop_capture() {
 void camera_grab_frame(uint8_t *frame, uint32_t width, uint32_t height) {
     pthread_mutex_lock(&frame_lock);
 
-    // 100 ms timeout
-    for(int i = 0; i < 10000; i++) {
-        pthread_mutex_lock(&frame_lock);
-
-        if(has_frame) {
-            for(int i = 0; i < height; i++) {
-                for(int j = 0; j < width; j++) {
-                    float factor_x = (float)requested_width / width;
-                    float factor_y = (float)requested_height / height;
-
-                    int dest_idx = i * width + j;
-                    int src_idx = factor_y * (height - 1 - i) * requested_width + factor_x * (width - 1 - j);
-
-                    for(int k = 0; k < 3; k++) {
-                        frame[3*dest_idx + k] = current_frame_ptr[3*src_idx + k];
-                    }
-                }
-            }
-
-            has_frame = 0;
-
-            pthread_mutex_unlock(&frame_lock);
-            return; // Success
-        }
+    // TODO: Add timeout
+    while(!has_frame) {
         pthread_mutex_unlock(&frame_lock);
-        
         usleep(10);
+        pthread_mutex_lock(&frame_lock);
     }
-    // Timeout
-    fprintf(stderr, "camera_grab_frame: Timeout");
+
+    for(int i = 0; i < height; i++) {
+        for(int j = 0; j < width; j++) {
+            float factor_x = (float)requested_width / width;
+            float factor_y = (float)requested_height / height;
+
+            int dest_idx = i * width + j;
+            int src_idx = factor_y * (height - 1 - i) * requested_width + factor_x * (width - 1 - j);
+
+            for(int k = 0; k < 3; k++) {
+                frame[3*dest_idx + k] = current_frame_ptr[3*src_idx + k];
+            }
+        }
+    }
+
+    has_frame = 0;
+
+    pthread_mutex_unlock(&frame_lock);
 }
 
 void *camera_capture_loop(void *size) {
