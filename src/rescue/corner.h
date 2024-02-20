@@ -5,6 +5,7 @@
 #include "../libs/tensorflow/lite/c/c/c_api.h"
 
 #include "../utils.h"
+#include "../thresholding.h"
 
 #define CORNER_MODEL_PATH "/home/pi/robocup24/runtime_data/corner.tflite"
 
@@ -70,11 +71,11 @@ int corner_detect(uint8_t *input, float *x, int green) {
 
     float output[MODEL_OUTPUT_WIDTH * MODEL_OUTPUT_HEIGHT * MODEL_OUTPUT_CHANNELS];
 
-    const TfLiteTensor *output_tensor = TfLiteInterpreterGetOutputTensor(interpreter, 0);
+    const TfLiteTensor *output_tensor = TfLiteInterpreterGetOutputTensor(corner_interpreter, 0);
     TfLiteTensorCopyToBuffer(output_tensor, output, sizeof(output));
 
     float output_blurred[MODEL_OUTPUT_WIDTH * MODEL_OUTPUT_HEIGHT];
-    box_blur(output, MODEL_OUTPUT_WIDTH, MODEL_OUTPUT_HEIGHT, MODEL_OUTPUT_CHANNELS, output_blurred, 5, 2); // TODO: adjust parameters
+    //box_blur(output, MODEL_OUTPUT_WIDTH, MODEL_OUTPUT_HEIGHT, MODEL_OUTPUT_CHANNELS, output_blurred, 5, 2); // TODO: adjust parameters
 
     int num_pixels = 0;
     for(int i = 0; i < MODEL_OUTPUT_HEIGHT; i++) {
@@ -93,7 +94,7 @@ int corner_detect(uint8_t *input, float *x, int green) {
         return 1;
     }
     
-    x = 0.0f;
+    *x = 0.0f;
     return 0;
 }
 

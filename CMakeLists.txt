@@ -29,7 +29,8 @@ add_executable(robocup
     src/camera.c
     src/line/line.c
     src/rescue/rescue.c
-    src/display/display.c)
+    src/display/display.c
+    src/thresholding.c)
 
 target_link_libraries(robocup v4l2)
 target_link_libraries(robocup Threads::Threads)

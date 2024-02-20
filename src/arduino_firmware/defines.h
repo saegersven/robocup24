@@ -46,6 +46,8 @@ static float heading, pitch;
 #define SENSOR_DIST_START 2
 #define SENSOR_DIST_END 4
 
+#define SENSOR_BAT_VOLTAGE 12
+
 // PROTOCOL
 #define CMD_MOTOR   (0x01)
 #define CMD_SERVO   (0x03)
@@ -53,6 +55,7 @@ static float heading, pitch;
 #define CMD_TURN    (0x05)
 
 #define CMD_LED     (0x06)
+#define CMD_BAT_VOLTAGE (0x07)
 
 
 #define BYTE_TURN_DONE (0x01)

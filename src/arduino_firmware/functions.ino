@@ -31,12 +31,16 @@ void init_robot() {
 
   Wire.begin();
 
+  Serial.println("Before dist init");
   init_dist_sensors();
+
+  Serial.println("Before BNO init");
 
   if (!bno.begin()) {
     panic();
   }
 
+  Serial.println("Init done");
   /*
     Serial.print("Start up battery voltage: ");
     Serial.print(start_up_bat_voltage);
@@ -211,10 +215,11 @@ void init_dist_sensors() {
   pinMode(PIN_SHIFT_REGISTER_CLOCK, OUTPUT);
   pinMode(PIN_SHIFT_REGISTER_DATA, OUTPUT);
 
-  bool init_successfull = true;
+  bool init_successful = true;
   int d = 10; // is increased after init fail
 
   do {
+    //Serial.println(init_successful);
     // power off all sensors
     digitalWrite(PIN_SHIFT_REGISTER_LATCH, LOW);
     shiftOut(PIN_SHIFT_REGISTER_DATA, PIN_SHIFT_REGISTER_CLOCK, MSBFIRST, B00000000);
@@ -227,7 +232,9 @@ void init_dist_sensors() {
       digitalWrite(PIN_SHIFT_REGISTER_LATCH, HIGH);
       delay(d);
       if (!dist_sensors[i].init()) {
-        init_successfull = false;
+        Serial.println(i);
+
+        init_successful = false;
       } else {
         dist_sensors[i].setAddress(dist_sensors_addresses[i]);
         dist_sensors[i].setMeasurementTimingBudget(20000);
@@ -235,8 +242,12 @@ void init_dist_sensors() {
       }
       delay(d);
     }
-    d = d + 10;
-  } while (init_successfull == false or d > 200);
+    d = d + 20;
+  } while (!init_successful && d < 100);
+
+  if(!init_successful) {
+    Serial.println("Panic!");
+  }
 }
 
 void write_to_shift_register(byte data) {

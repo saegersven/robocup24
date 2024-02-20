@@ -16,6 +16,7 @@
 //#define DISABLE_BUTTON_START
 //#define RESCUE_START
 
+
 static int state;
 static pthread_t main_thread_id;
 
@@ -24,8 +25,12 @@ void *main_loop(void *arg) {
 
     printf("MAIN THREAD START\n");
 
+    camera_start_capture(320, 192);
+    uint8_t frame[320 * 192 * 3];
     while(1) {
-        printf("%d\n", robot_sensor(DIST_RIGHT_FRONT));
+        camera_grab_frame(frame, 320, 192);
+
+        printf("%d\n", frame[600]);
     }
 
     // Do all the setup here
@@ -35,6 +40,7 @@ void *main_loop(void *arg) {
 #else
     state = STATE_RESCUE;
 #endif
+
     while(1) {
         if(state == STATE_LINE) {
             int ret = line();
@@ -94,10 +100,13 @@ void sig_int_handler(int sig) {
     }
 }
 
-void button_loop(int button_value) {
+void button_loop(int button_value, int idle) {
     while((robot_button() ? 1 : 0) == (button_value ? 1 : 0)) {
 #ifdef DISPLAY_ENABLE
         if(display_loop()) quit();
+        if(idle) {
+            display_set_number(NUMBER_BAT_VOLTAGE, robot_sensor(BAT_VOLTAGE));
+        }
 #endif
     }
 }
@@ -107,6 +116,8 @@ int main() {
         fprintf(stderr, "Can't catch SIGINT\n");
     }
 
+    robot_init();
+
 #ifdef DISPLAY_ENABLE
     display_create(0);
 #endif
@@ -114,17 +125,17 @@ int main() {
     while(1) {
 #ifndef DISABLE_BUTTON_START
         robot_led(1);
-        button_loop(0);
+        button_loop(0, 1);
         robot_led(0);
-        button_loop(1);
+        button_loop(1, 1);
 #endif
 
         pthread_create(&main_thread_id, NULL, main_loop, NULL);
 
-        button_loop(0);
+        button_loop(0, 0);
 
         stop();
 
-        button_loop(1);
+        button_loop(1, 0);
     }
 }

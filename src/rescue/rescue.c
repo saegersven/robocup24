@@ -176,7 +176,7 @@ void rescue_deliver(int is_dead) {
 	float last_x_corner = 0.0f;
 	
 	while(1) {
-		robot_drive(turn_speed, -turn_speed);
+		robot_drive(turn_speed, -turn_speed, 0);
 
 		camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
 
@@ -228,11 +228,11 @@ void rescue_deliver(int is_dead) {
 void rescue() {
 	if(robot_distance_avg(DIST_RIGHT_FRONT, 10, 2) < 400) {
 		robot_turn(DTOR(130.0f));
-		robot_m(-100, -100, 800);
+		robot_drive(-100, -100, 800);
 		robot_turn(DTOR(100.0f));
 	} else {
 		robot_turn(DTOR(-130.0f));
-		robot_m(-100, -100, 800);
+		robot_drive(-100, -100, 800);
 		robot_turn(DTOR(-100.0f));
 	}
 

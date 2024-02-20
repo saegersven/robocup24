@@ -12,14 +12,22 @@ static int mode;
 static float numbers[NUM_NUMBERS];
 static uint8_t *images[NUM_IMAGES];
 
-void draw_mode_idle() {
-    draw_text("IDLE", 220, 110, 1.0f, 1.0f, 1.0f);
-    draw_text("PRESS BUTTON", 180, 160, 0.6f, 0.6f, 0.6f);
-}
-
 // Linearly maps val from [a, b] to [c, d]
 float map(float val, float a, float b, float c, float d) {
     return c + (val - a) / (b - a) * (d - c);
+}
+
+void draw_mode_idle() {
+    draw_text("IDLE", 220, 110, 1.0f, 1.0f, 1.0f);
+    draw_text("PRESS BUTTON", 180, 160, 0.6f, 0.6f, 0.6f);
+    char buf[32];
+    sprintf(buf, "BAT  %.1f V", numbers[NUMBER_BAT_VOLTAGE] / 10.0f / 4.0f + 0.2f);
+    
+    float color_fps = map(numbers[NUMBER_BAT_VOLTAGE], 3.8f, 4.2f, 0.0f, 0.8f);
+    if(color_fps < 0.0f) color_fps = 0.0f;
+    if(color_fps > 0.8f) color_fps = 0.8f;
+
+    draw_text(buf, 20, 20, 1.0 - color_fps, 0.2f + color_fps, 0.0f);
 }
 
 void draw_mode_follow() {

@@ -36,7 +36,11 @@ void parse_message() {
     } else if (message[1] >= SENSOR_DIST_START && message[1] <= SENSOR_DIST_END) {
       // One of the distance sensors
       int sensor_id = message[1] - SENSOR_DIST_START;
-      value = distance(sensor_id);
+      if (sensor_id < NUM_DIST_SENSORS) {
+        value = distance(sensor_id);
+      }
+    } else if(message[1] == SENSOR_BAT_VOLTAGE) {
+      value = get_battery_voltage() * 10;
     }
 
     Serial.write((uint8_t*)&value, 2);
@@ -49,6 +53,7 @@ void parse_message() {
 
 void setup() {
   Serial.begin(115200);
+  pinMode(13, OUTPUT);
   init_robot();
 }
 

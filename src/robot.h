@@ -39,13 +39,12 @@
 #define SERVO_STRING 2
 
 // Sensor IDs
-#define DIST_FRONT      (2)
-#define DIST_RIGHT_FRONT (3)
-#define DIST_RIGHT_REAR  (4)
-#define DIST_REAR_LEFT  (5)
-#define DIST_REAR_RIGHT (6)
+#define DIST_FRONT      (4)
+#define DIST_RIGHT_FRONT (2)
+#define DIST_RIGHT_REAR  (3)
 #define IMU_PITCH       (10)
 #define IMU_YAW         (11) // Yaw/Heading
+#define BAT_VOLTAGE     (12)
 
 // Command IDs
 #define CMD_MOTOR   (0x01)
@@ -89,4 +88,4 @@ bool robot_button();
 
 int16_t robot_sensor(uint8_t sensor_id);
 
-int robot_distance_avg(uint8_t sensor_id, int num_measurements, int n_remove);
+int robot_distance_avg(uint8_t sensor_id, int num_measurements, int remove_percentage);
