@@ -18,6 +18,7 @@
 
 #define INPUT_WIDTH 320
 #define INPUT_HEIGHT 240
+#define INPUT_CHANNELS 3
 
 static TfLiteModel *corner_model = NULL;
 static TfLiteInterpreterOptions *corner_options = NULL;
@@ -94,4 +95,24 @@ int corner_detect(uint8_t *input, float *x, int green) {
     
     x = 0.0f;
     return 0;
+}
+
+int corner_detect_classic(uint8_t *input, float *x, int green) {
+    uint8_t thresh[INPUT_WIDTH * INPUT_HEIGHT];
+
+    uint32_t num_pixels = 0;
+
+    image_threshold(thresh, INPUT_WIDTH, INPUT_HEIGHT, 1, input, INPUT_WIDTH, INPUT_HEIGHT, INPUT_CHANNELS, &num_pixels, green ? is_green : is_red);
+
+    if(num_pixels < 0.1f * INPUT_WIDTH * INPUT_HEIGHT) return 0;
+
+    for(int i = 0; i < INPUT_HEIGHT; i++) {
+        for(int j = 0; j < INPUT_WIDTH; j++) {
+            if(thresh[i * INPUT_WIDTH + j]) {
+                *x += j;
+            }
+        }
+    }
+    *x /= num_pixels;
+    return 1;
 }
