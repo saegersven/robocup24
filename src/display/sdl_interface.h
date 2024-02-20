@@ -187,7 +187,6 @@ void intensify_pixels(float x, float y, float b, float g, float r) {
     buffer[3 * buf_idx + 2] = r * 255;
 }
 
-// TODO: This is very inefficient, improve
 int capsule(float px, float py, float ax, float ay, float bx, float by, float r) {
     float pax = px - ax, pay = py - ay, bax = bx - ax, bay = by - ay;
     float h = fmaxf(fminf((pax * bax + pay * bay) / (bax * bax + bay * bay), 1.0f), 0.0f);

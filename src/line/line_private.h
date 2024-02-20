@@ -21,3 +21,5 @@ static uint32_t num_green_pixels;
 
 static DECLARE_S_IMAGE(red, LINE_FRAME_WIDTH, LINE_FRAME_HEIGHT, 1);
 static uint32_t num_red_pixels;
+
+static int obstacle_enabled = 1;    // This is here because green must be able to disable obstacle

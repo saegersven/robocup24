@@ -1,6 +1,7 @@
 #include "rescue.h"
 
 #include <stdio.h>
+#include <math.h>
 
 #include "../vision.h"
 #include "../camera.h"
@@ -9,6 +10,7 @@
 #include "../robot.h"
 
 #include "victims.h"
+#include "corner.h"
 
 static DECLARE_S_IMAGE(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3);
 
@@ -35,7 +37,7 @@ void rescue_collect_victim() {
     delay(500);
 }
 
-// Returns 0 if no victims was found, 1 if victim is alive and 2 if victim is dead
+// Returns 0 if no victim was found, 1 if victim is alive and 2 if victim is dead
 int rescue_collect(int find_dead) {
 	display_set_number(NUMBER_RESCUE_OBJECTIVE, RESCUE_OBJECTIVE_VICTIM);
 
@@ -159,9 +161,81 @@ void rescue_drop_victim() {
 
 void rescue_deliver(int is_dead) {
 	display_set_number(NUMBER_RESCUE_OBJECTIVE, RESCUE_OBJECTIVE_CORNER);
+
+	robot_servo(SERVO_CAM, CAM_POS_UP, false, false);
+
+	int SLOW_TURN_SPEED = 35;
+	int FAST_TURN_SPEED = 50;
+
+	int turn_speed = FAST_TURN_SPEED;
+
+	long total_time = 8000;
+	long max_time = 10000;
+
+	float x_corner = 0.0f;
+	float last_x_corner = 0.0f;
+	
+	while(1) {
+		robot_drive(turn_speed, -turn_speed);
+
+		camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
+
+		float x = 0.0f;
+		if(corner_detect(frame, &x, !is_dead)) {
+			printf("Corner pos: %f\n", x);
+
+			if(fabsf(x) < 0.2f || x <= 0.0f && last_x_corner > 0.0f) {
+				robot_stop();
+				delay(50);
+
+				robot_turn(-DTOR(20.0f));
+
+				int alignment_successful = 1;
+				// Align for final approach
+				for(int i = 0; i < 3; i++) {
+					camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_CAPTURE_HEIGHT);
+
+					if(!corner_detect(frame, &x, !is_dead)) {
+						printf("Lost corner");
+						robot_turn(-DTOR(20.0f));
+						alignment_successful = 0;
+						break;
+					}
+
+					robot_turn(x * DTOR(65.0f) / (i + 1));
+				}
+
+				if(!alignment_successful) continue;
+
+				// Robot is aligned with corner, approach
+				robot_drive(100, 100, 1200);
+				robot_drive(40, 40, 2600);
+
+				// Drop victim
+				rescue_drop_victim();
+
+				// Go back to center
+				robot_drive(-100, -100, 1500);
+				robot_turn(DTOR(45.0f)); // face away from corner to avoid detecting rescued victims (just to be safe)
+
+				return;
+			}
+		}
+		last_x_corner = x_corner;
+	}
 }
 
 void rescue() {
+	if(robot_distance_avg(DIST_RIGHT_FRONT, 10, 2) < 400) {
+		robot_turn(DTOR(130.0f));
+		robot_m(-100, -100, 800);
+		robot_turn(DTOR(100.0f));
+	} else {
+		robot_turn(DTOR(-130.0f));
+		robot_m(-100, -100, 800);
+		robot_turn(DTOR(-100.0f));
+	}
+
 	camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
 
 	robot_servo(SERVO_CAM, CAM_POS_UP, false, false);
@@ -172,6 +246,7 @@ void rescue() {
 	display_set_image(IMAGE_RESCUE_FRAME, frame);
 
 	victims_init();
+	corner_init();
 
 	int num_victims = 0;
 
@@ -179,7 +254,13 @@ void rescue() {
 		display_set_number(NUMBER_RESCUE_NUM_VICTIMS, num_victims);
 
 		int ret = rescue_collect(num_victims > 2);
-		rescue_deliver(ret == 2);
+
+		if(ret) {
+			rescue_deliver(ret == 2);
+		} else {
+			// Re-position
+			// TODO
+		}
 		
 		num_victims++;
 	}
@@ -189,6 +270,7 @@ void rescue() {
 
 void rescue_cleanup() {
 	victims_destroy();
+	corner_destroy();
 	camera_stop_capture();
 	delay(100);
 }

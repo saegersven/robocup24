@@ -5,7 +5,6 @@
 #define LINE_RED_MIN_PERCENTAGE 0.27f
 
 static int obstacle_counter = 0;
-static int obstacle_enabled = 1;
 
 void line_black_threshold();
 

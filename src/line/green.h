@@ -160,10 +160,10 @@ void line_green() {
 
         if(green_result == 0) return;
 
-        // TODO: disable obstacle
+        obstacle_enabled = 0;
 
         robot_stop();
-        delay(50); // TODO: delay needed?
+        delay(40);
 
         // Approach
         float dx = global_average_x - LINE_CENTER_X;
@@ -172,7 +172,7 @@ void line_green() {
         float distance = sqrtf(dx*dx + dy*dy);
 
         robot_turn(angle);
-        delay(50);
+        delay(40);
         robot_drive(80, 80, DISTANCE_FACTOR * (distance - 50));
 
         robot_drive(60, 60, 270);
@@ -214,6 +214,6 @@ void line_green() {
             }
         }
 
-        // TODO: Re-enable obstacle
+        obstacle_enabled = 1;
     }
 }
