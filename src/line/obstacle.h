@@ -46,11 +46,9 @@ int line_obstacle_drive_time_or_line(int time_ms) {
 void line_obstacle_navigate() {
     display_set_mode(MODE_LINE_OBSTACLE);
 
-    robot_stop();
-    robot_drive(-80, -80, 200);
-    delay(50);
-    robot_turn(-R90);
-    delay(50);
+    robot_drive(-80, -80, 100);
+    robot_turn(DTOR(-90.0f));
+    delay(500);
     robot_drive(60, 60, 200);
     delay(20);
 
@@ -61,31 +59,6 @@ void line_obstacle_navigate() {
     robot_drive(80, 80, 200);
     robot_turn(DTOR(-30.0f));
     robot_drive(-80, -80, 200);
-
-    return;
-
-    robot_drive(60, 60, 700);
-    delay(50);
-    robot_turn(R90);
-    delay(50);
-    if(line_obstacle_drive_time_or_line(1300)) {
-        delay(50);
-        robot_turn(R90);
-        delay(50);
-        if(line_obstacle_drive_time_or_line(1300)) {
-            delay(50);
-            robot_turn(R90);
-            delay(50);
-            line_obstacle_drive_time_or_line(1300);
-            delay(50);
-        }
-    }
-    robot_turn(DTOR(-45.0f));
-    robot_drive(80, 80, 200);
-    robot_turn(DTOR(-30.0f));
-    robot_drive(-80, -80, 200);
-
-    display_set_mode(MODE_LINE_FOLLOW);
 }
 
 void line_obstacle() {

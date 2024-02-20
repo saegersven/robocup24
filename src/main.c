@@ -32,7 +32,6 @@ void *main_loop(void *arg) {
 #else
     state = STATE_RESCUE;
 #endif
-
     while(1) {
         if(state == STATE_LINE) {
             int ret = line();
@@ -104,8 +103,6 @@ int main() {
     if(signal(SIGINT, sig_int_handler) == SIG_ERR) {
         fprintf(stderr, "Can't catch SIGINT\n");
     }
-
-    robot_init();
 
 #ifdef DISPLAY_ENABLE
     display_create(0);

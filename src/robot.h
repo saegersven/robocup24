@@ -39,11 +39,11 @@
 #define SERVO_STRING 2
 
 // Sensor IDs
-#define DIST_FRONT      (2)
-#define DIST_LEFT_FRONT (3)
-#define DIST_LEFT_REAR  (4)
-#define DIST_REAR_LEFT  (5)
-#define DIST_REAR_RIGHT (6)
+#define DIST_FRONT      (3)
+#define DIST_RIGHT_FRONT (2)
+#define DIST_RIGHT_REAR  (4)
+//#define DIST_REAR_RIGHT  (5) (unused)
+//#define DIST_REAR_LEFT   (6) (unused)
 #define IMU_PITCH       (10)
 #define IMU_YAW         (11) // Yaw/Heading
 

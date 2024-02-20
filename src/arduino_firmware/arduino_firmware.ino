@@ -36,9 +36,12 @@ void parse_message() {
     } else if (message[1] >= SENSOR_DIST_START && message[1] <= SENSOR_DIST_END) {
       // One of the distance sensors
       int sensor_id = message[1] - SENSOR_DIST_START;
-      if (sensor_id < NUM_DIST_SENSORS) {
-        // TODO: Read out distance sensor
-        value = distance(sensor_id);
+      if (sensor_id = 0) {
+        value = distance(0);
+      } else if (sensor_id = 1) {
+        value = distance(1);
+      } else if (sensor_id = 2) {
+        value = distance(2);
       }
     }
 
@@ -56,14 +59,6 @@ void setup() {
 }
 
 void loop() {
-  while (true) {
-    Serial.print("Dist 0: ");
-    Serial.println(distance(0));
-    Serial.print("Dist 1: ");
-    Serial.println(distance(1));
-    Serial.print("Dist 2: ");
-    Serial.println(distance(2));
-  }
   while (Serial.available() > 0) {
     message[message_pos] = Serial.read();
     message_pos++;
