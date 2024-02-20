@@ -36,13 +36,7 @@ void parse_message() {
     } else if (message[1] >= SENSOR_DIST_START && message[1] <= SENSOR_DIST_END) {
       // One of the distance sensors
       int sensor_id = message[1] - SENSOR_DIST_START;
-      if (sensor_id = 0) {
-        value = distance(0);
-      } else if (sensor_id = 1) {
-        value = distance(1);
-      } else if (sensor_id = 2) {
-        value = distance(2);
-      }
+      value = distance(sensor_id);
     }
 
     Serial.write((uint8_t*)&value, 2);

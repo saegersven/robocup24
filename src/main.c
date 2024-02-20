@@ -24,6 +24,10 @@ void *main_loop(void *arg) {
 
     printf("MAIN THREAD START\n");
 
+    while(1) {
+        printf("%d\n", robot_sensor(DIST_RIGHT_FRONT));
+    }
+
     // Do all the setup here
 #ifndef RESCUE_START
     state = STATE_LINE;

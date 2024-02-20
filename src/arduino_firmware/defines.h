@@ -44,7 +44,7 @@ static float heading, pitch;
 #define SENSOR_HEADING 11
 
 #define SENSOR_DIST_START 2
-#define SENSOR_DIST_END 9
+#define SENSOR_DIST_END 4
 
 // PROTOCOL
 #define CMD_MOTOR   (0x01)
