@@ -12,11 +12,11 @@ void line_black_threshold();
 #define OBSTACLE_ROI_XMAX 50
 #define OBSTACLE_ROI_YMIN 0
 #define OBSTACLE_ROI_YMAX 48
+#define DESIRED_OBSTACLE_DIST 70
 
 int line_obstacle_drive_time_or_line(int time_ms) {
     long long start_t = milliseconds();
     while(milliseconds() - start_t < time_ms) {
-    //while(1) {
         robot_drive(100, 32, 0);
 
         camera_grab_frame(frame, LINE_FRAME_WIDTH, LINE_FRAME_HEIGHT);
@@ -44,16 +44,25 @@ int line_obstacle_drive_time_or_line(int time_ms) {
 
 void line_obstacle_navigate() {
     display_set_mode(MODE_LINE_OBSTACLE);
+    robot_stop();
 
-    robot_drive(-80, -80, 100);
+    int dist_delta = 0;
+    long long start_time = milliseconds;
+
+    do {
+        dist_delta = robot_sensor(DIST_FRONT) - DESIRED_OBSTACLE_DIST;
+        printf("Distance delta %d", dist_delta);
+        if (dist_delta > 0) robot_drive(50, 50, dist_delta);
+        else robot_drive(-50, -50, dist_delta);
+    }
+    // repeat until within +/- 5mm of desired distance or 5s have passed
+    while (dist_delta > 5 && dist_delta < -5 && (start_time - milliseconds()) < 5000);
+
+
     robot_turn(DTOR(-90.0f));
-    delay(500);
-    robot_drive(60, 60, 200);
-    delay(20);
 
     line_obstacle_drive_time_or_line(6000);
 
-    delay(50);
     robot_turn(DTOR(-45.0f));
     robot_drive(80, 80, 200);
     robot_turn(DTOR(-30.0f));
