@@ -99,13 +99,17 @@ int corner_detect(uint8_t *input, float *x, int green) {
 }
 
 int corner_detect_classic(uint8_t *input, float *x, int green) {
+    char filename[64];
+    sprintf(filename, "/home/pi/capture/corner/%lld.png", milliseconds());
+    write_image(filename, input, INPUT_WIDTH, INPUT_HEIGHT, 3);
+
     uint8_t thresh[INPUT_WIDTH * INPUT_HEIGHT];
 
     uint32_t num_pixels = 0;
 
     image_threshold(thresh, INPUT_WIDTH, INPUT_HEIGHT, 1, input, INPUT_WIDTH, INPUT_HEIGHT, INPUT_CHANNELS, &num_pixels, green ? is_green : is_red);
 
-    if(num_pixels < 0.1f * INPUT_WIDTH * INPUT_HEIGHT) return 0;
+    if(num_pixels < 0.01f * INPUT_WIDTH * INPUT_HEIGHT) return 0;
 
     for(int i = 0; i < INPUT_HEIGHT; i++) {
         for(int j = 0; j < INPUT_WIDTH; j++) {
@@ -114,6 +118,7 @@ int corner_detect_classic(uint8_t *input, float *x, int green) {
             }
         }
     }
-    *x /= num_pixels;
+    *x /= num_pixels * INPUT_WIDTH;
+    *x -= 0.5f;
     return 1;
 }

@@ -166,6 +166,8 @@ void line_follow() {
 
     float line_angle = line_get_line_angle(last_line_angle);
 
+    //printf("Line angle: %f\n", line_angle);
+
     long long time_now = microseconds();
     float dt = (time_now - last_follow_time) / 1e6f;
     float d_dt_line_angle = (line_angle - last_line_angle) / dt;

@@ -70,14 +70,14 @@ void camera_grab_frame(uint8_t *frame, uint32_t width, uint32_t height) {
     // TODO: Add timeout
     while(!has_frame) {
         pthread_mutex_unlock(&frame_lock);
-        usleep(10);
+        usleep(100);
         pthread_mutex_lock(&frame_lock);
     }
+    float factor_x = (float)requested_width / width;
+    float factor_y = (float)requested_height / height;
 
     for(int i = 0; i < height; i++) {
         for(int j = 0; j < width; j++) {
-            float factor_x = (float)requested_width / width;
-            float factor_y = (float)requested_height / height;
 
             int dest_idx = i * width + j;
             int src_idx = factor_y * (height - 1 - i) * requested_width + factor_x * (width - 1 - j);
@@ -218,5 +218,7 @@ void *camera_capture_loop(void *size) {
 
         /* Queue next buffer */
         xioctl(fd, VIDIOC_QBUF, &buf);
+
+        usleep(70);
     }
 }

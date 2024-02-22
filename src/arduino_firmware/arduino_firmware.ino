@@ -58,6 +58,7 @@ void setup() {
 }
 
 void loop() {
+
   while (Serial.available() > 0) {
     message[message_pos] = Serial.read();
     message_pos++;

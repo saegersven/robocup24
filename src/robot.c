@@ -88,6 +88,11 @@ void robot_serial_write_command(uint8_t command, uint8_t *data, uint8_t len) {
     buf[0] = command;
     memcpy(buf + 1, data, len);
 
+    //tcflush(serial_fd, TCIFLUSH);
+    //tcflush(serial_fd, TCOFLUSH);
+    delay(3);
+    tcflush(serial_fd, TCIFLUSH);
+
     if(write(serial_fd, buf, len + 1) < 0) {
         fprintf(stderr, "Write error: %s\n", strerror(errno));
     }
@@ -169,11 +174,13 @@ bool robot_button() {
 }
 
 int16_t robot_sensor(uint8_t sensor_id) {
-    int16_t value = 0;
+    int16_t value = -1;
 
     robot_serial_write_command(CMD_SENSOR, &sensor_id, 1);
     
     if(robot_serial_read(&value, 2) != 2) printf("robot_sensor: Read failed\n");
+
+    if(value < -1) value = 2000;
 
     return value;
 }
@@ -190,9 +197,13 @@ int robot_distance_avg(uint8_t sensor_id, int num_measurements, int n_remove) {
     //qsort(arr, num_measurements, sizeof(float), compare_float);
 
     float sum = 0.0f;
+    int num_valid = 0;
     for(int i = n_remove; i < num_measurements - n_remove; i++) {
-        sum += arr[i];
+        if(arr[i] > 0) {
+            sum += arr[i];
+            num_valid++;
+        }
     }
 
-    return sum / num_measurements;
+    return sum / num_valid;
 }

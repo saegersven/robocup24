@@ -25,6 +25,8 @@ void line_start() {
     read_raw_image("/home/pi/robocup24/runtime_data/line_correction.bin", line_correction);
 
     robot_servo(SERVO_CAM, CAM_POS_DOWN, false, false);
+    robot_servo(SERVO_ARM, ARM_POS_UP, false, false);
+    robot_servo(SERVO_STRING, STRING_POS_OPEN, false, false);
 
 #ifdef DISPLAY_ENABLE
     display_set_mode(MODE_LINE_FOLLOW);

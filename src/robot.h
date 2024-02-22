@@ -39,9 +39,9 @@
 #define SERVO_STRING 2
 
 // Sensor IDs
-#define DIST_FRONT      (4)
-#define DIST_RIGHT_FRONT (2)
-#define DIST_RIGHT_REAR  (3)
+#define DIST_FRONT      (2)
+#define DIST_RIGHT_FRONT (3)
+#define DIST_RIGHT_REAR  (4)
 #define IMU_PITCH       (10)
 #define IMU_YAW         (11) // Yaw/Heading
 #define BAT_VOLTAGE     (12)
@@ -53,12 +53,15 @@
 #define CMD_TURN    (0x05)
 #define CMD_LED     (0x06)
 
+#define CAM_HEIGHT_MM 140
+
 #define CAM_POS_UP 42
+#define CAM_POS_HORIZONTAL 36
 #define CAM_POS_DOWN2 90
 #define CAM_POS_DOWN3 110
 #define CAM_POS_DOWN 135
-#define ARM_POS_DOWN 192
-#define ARM_POS_HALF_DOWN 117
+#define ARM_POS_DOWN 194
+#define ARM_POS_HALF_DOWN 125
 #define ARM_POS_UP 48
 #define STRING_POS_CLOSED 130
 #define STRING_POS_OPEN 30

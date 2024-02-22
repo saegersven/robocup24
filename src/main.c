@@ -14,7 +14,7 @@
 #define STATE_RESCUE 1
 
 //#define DISABLE_BUTTON_START
-//#define RESCUE_START
+#define RESCUE_START
 
 
 static int state;
@@ -98,6 +98,7 @@ void button_loop(int button_value, int idle) {
         if(display_loop()) quit();
         if(idle) {
             display_set_number(NUMBER_BAT_VOLTAGE, robot_sensor(BAT_VOLTAGE));
+            delay(20);
         }
 #endif
     }

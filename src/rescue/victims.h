@@ -49,6 +49,10 @@ void victims_destroy() {
 #define DEAD_THRESHOLD      0.5f
 
 int victims_detect(uint8_t *image, struct Victim *victims) {
+    char filename[64];
+    sprintf(filename, "/home/pi/capture/victim/%lld.png", milliseconds());
+    write_image(filename, image, INPUT_WIDTH, INPUT_HEIGHT, 3);
+
     TfLiteTensor *input_tensor = TfLiteInterpreterGetInputTensor(victims_interpreter, 0);
 
     float input_image_norm[MODEL_INPUT_WIDTH * MODEL_INPUT_HEIGHT * MODEL_INPUT_CHANNELS];

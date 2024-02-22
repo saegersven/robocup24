@@ -131,7 +131,7 @@ int line_silver() {
 
     //pthread_mutex_lock(&silver_output_lock);
     int res = silver_outputs[0] > silver_outputs[1];
-    printf("%f\n", silver_outputs[0]);
+    //printf("%f\n", silver_outputs[0]);
 
 #ifdef DISPLAY_ENABLE
     //display_set_number(NUMBER_SILVER_CONFIDENCE, silver_outputs[0]);

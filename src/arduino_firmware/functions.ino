@@ -31,16 +31,16 @@ void init_robot() {
 
   Wire.begin();
 
-  Serial.println("Before dist init");
+  //Serial.println("Before dist init");
   init_dist_sensors();
 
-  Serial.println("Before BNO init");
+  //Serial.println("Before BNO init");
 
   if (!bno.begin()) {
-    panic();
+    panic(5000);
   }
 
-  Serial.println("Init done");
+  //Serial.println("Init done");
   /*
     Serial.print("Start up battery voltage: ");
     Serial.print(start_up_bat_voltage);
@@ -232,13 +232,14 @@ void init_dist_sensors() {
       digitalWrite(PIN_SHIFT_REGISTER_LATCH, HIGH);
       delay(d);
       if (!dist_sensors[i].init()) {
-        Serial.println(i);
+        //Serial.println(i);
 
         init_successful = false;
       } else {
         dist_sensors[i].setAddress(dist_sensors_addresses[i]);
         dist_sensors[i].setMeasurementTimingBudget(20000);
         dist_sensors[i].setTimeout(100);
+        //dist_sensors[i].startContinuous();
       }
       delay(d);
     }
@@ -246,7 +247,8 @@ void init_dist_sensors() {
   } while (!init_successful && d < 100);
 
   if(!init_successful) {
-    Serial.println("Panic!");
+    panic(5000);
+    //Serial.println("Panic!");
   }
 }
 
@@ -271,11 +273,14 @@ float get_battery_voltage() {
   return analogRead(PIN_BATTERY_VOLTAGE) * (15.74 / 880);
 }
 
-void panic() {
+void panic(int time) {
+  long long start_time = millis();
   while (true) {
     digitalWrite(13, HIGH);
     delay(200);
     digitalWrite(13, LOW);
     delay(200);
+
+    if(time > 0 && millis() > start_time + time) break;
   }
 }
