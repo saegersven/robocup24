@@ -1,19 +1,3 @@
-/****************************************************************************************************************
- *                                                                                                              *
- * UTILS                                                                                                        *
- *                                                                                                              *
- * Provides utility functions for time and constants.                                                           *
- *                                                                                                              *
- * FOR_MILLIS(milliseconds)               - Loop that runs for a specified duration                             *
- * CLEAR(x)                               - Writes zeroes to memory of x                                        *
- *                                                                                                              *
- * millis()                               - Returns milliseconds since the UNIX epoch                           *
- * delay(milliseconds)                    - Wait for a specified duration                                       *
- *                                                                                                              *
- * float_comparison(elem1, elem2)         - Compares two floats                                                 *
- *                                                                                                              *
- ****************************************************************************************************************/
-
 #pragma once
 
 #include <stdlib.h>
