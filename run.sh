@@ -4,6 +4,9 @@ cd /home/pi/robocup24/build
 if ninja -j2 ;
 then
     v4l2-ctl --set-parm=90
-    /home/pi/robocup24/build/robocup
+    
+    while true; do
+        /home/pi/robocup24/build/robocup && break
+    done
 fi
 cd ..

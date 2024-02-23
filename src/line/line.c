@@ -32,7 +32,7 @@ void line_start() {
     display_set_mode(MODE_LINE_FOLLOW);
     display_set_image(IMAGE_FRAME, frame);
     display_set_image(IMAGE_BLACK, black);
-    display_set_image(IMAGE_GREEN, green);
+    display_set_image(IMAGE_GREEN, red);
 #endif
 }
 
@@ -89,6 +89,7 @@ int line() {
     line_follow();
     line_green();
     line_obstacle();
+    line_red();
 
     ret = line_silver();
 #else

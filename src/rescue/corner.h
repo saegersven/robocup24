@@ -42,6 +42,10 @@ void corner_destroy() {
     TfLiteInterpreterDelete(corner_interpreter);
     TfLiteInterpreterOptionsDelete(corner_options);
     TfLiteModelDelete(corner_model);
+
+    corner_interpreter = NULL;
+    corner_options = NULL;
+    corner_model = NULL;
 }
 
 int corner_detect(uint8_t *input, float *x, int green) {
@@ -72,25 +76,33 @@ int corner_detect(uint8_t *input, float *x, int green) {
     float output[MODEL_OUTPUT_WIDTH * MODEL_OUTPUT_HEIGHT * MODEL_OUTPUT_CHANNELS];
 
     const TfLiteTensor *output_tensor = TfLiteInterpreterGetOutputTensor(corner_interpreter, 0);
-    TfLiteTensorCopyToBuffer(output_tensor, output, sizeof(output));
+    TfLiteTensorCopyToBuffer(output_tensor, output, MODEL_OUTPUT_WIDTH * MODEL_OUTPUT_HEIGHT * MODEL_OUTPUT_CHANNELS * sizeof(float));
 
     float output_blurred[MODEL_OUTPUT_WIDTH * MODEL_OUTPUT_HEIGHT];
-    //box_blur(output, MODEL_OUTPUT_WIDTH, MODEL_OUTPUT_HEIGHT, MODEL_OUTPUT_CHANNELS, output_blurred, 5, 2); // TODO: adjust parameters
+    memcpy(output_blurred, output, MODEL_OUTPUT_WIDTH * MODEL_OUTPUT_HEIGHT * MODEL_OUTPUT_CHANNELS * sizeof(float));
+    //box_blur(output, MODEL_OUTPUT_WIDTH, MODEL_OUTPUT_HEIGHT, MODEL_OUTPUT_CHANNELS, output_blurred, 3, 1); // TODO: adjust parameters
+
+    uint8_t output_blurred_byte[MODEL_OUTPUT_WIDTH * MODEL_OUTPUT_HEIGHT];
+    for(int i = 0; i < MODEL_OUTPUT_HEIGHT * MODEL_OUTPUT_WIDTH * MODEL_OUTPUT_CHANNELS; i++) {
+        output_blurred_byte[i] = output_blurred[i];
+    }
+    write_image("corner_nn_output.png", output_blurred_byte, MODEL_OUTPUT_WIDTH, MODEL_OUTPUT_HEIGHT, MODEL_OUTPUT_CHANNELS);
 
     int num_pixels = 0;
-    for(int i = 0; i < MODEL_OUTPUT_HEIGHT; i++) {
+    for(int i = 4; i < MODEL_OUTPUT_HEIGHT; i++) {
         for(int j = 0; j < MODEL_OUTPUT_WIDTH; j++) {
             int idx = MODEL_OUTPUT_CHANNELS * (i * MODEL_OUTPUT_WIDTH + j) + green;
-            if(output_blurred[idx] > 0.5f) {
+            if(output_blurred[idx] > 0.25f) {
                 num_pixels++;
                 *x += j;
             }
         }
     }
-    if(num_pixels > 10) {
+    printf("Corner Num pixels: %d\n", num_pixels);
+    if(num_pixels > 7) {
         *x /= num_pixels;
         *x /= MODEL_OUTPUT_WIDTH;
-        *x += 0.5f;
+        *x -= 0.5f;
         return 1;
     }
     
@@ -98,26 +110,30 @@ int corner_detect(uint8_t *input, float *x, int green) {
     return 0;
 }
 
+static uint8_t corner_thresh[INPUT_WIDTH * INPUT_HEIGHT];
+
+#define CORNER_Y_SKIP 80
+
 int corner_detect_classic(uint8_t *input, float *x, int green) {
     char filename[64];
     sprintf(filename, "/home/pi/capture/corner/%lld.png", milliseconds());
     write_image(filename, input, INPUT_WIDTH, INPUT_HEIGHT, 3);
 
-    uint8_t thresh[INPUT_WIDTH * INPUT_HEIGHT];
-
     uint32_t num_pixels = 0;
 
-    image_threshold(thresh, INPUT_WIDTH, INPUT_HEIGHT, 1, input, INPUT_WIDTH, INPUT_HEIGHT, INPUT_CHANNELS, &num_pixels, green ? is_green : is_red);
+    image_threshold(corner_thresh, INPUT_WIDTH, INPUT_HEIGHT, 1, input, INPUT_WIDTH, INPUT_HEIGHT, INPUT_CHANNELS, &num_pixels, green ? is_green : is_red);
 
-    if(num_pixels < 0.01f * INPUT_WIDTH * INPUT_HEIGHT) return 0;
-
-    for(int i = 0; i < INPUT_HEIGHT; i++) {
+    num_pixels = 0;
+    for(int i = CORNER_Y_SKIP; i < INPUT_HEIGHT; i++) {
         for(int j = 0; j < INPUT_WIDTH; j++) {
-            if(thresh[i * INPUT_WIDTH + j]) {
+            if(corner_thresh[i * INPUT_WIDTH + j]) {
                 *x += j;
+                num_pixels++;
             }
         }
     }
+    if(num_pixels < 0.01f * INPUT_WIDTH * INPUT_HEIGHT) return 0;
+
     *x /= num_pixels * INPUT_WIDTH;
     *x -= 0.5f;
     return 1;

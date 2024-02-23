@@ -43,6 +43,8 @@ static int camera_fd;
 
 static const int NUM_BUFFERS = 2;
 
+static int camera_running = 0;
+
 void camera_start_capture(int width, int height) {
     stop_signal = 0;
     has_frame = 0;
@@ -54,14 +56,18 @@ void camera_start_capture(int width, int height) {
     requested_height = height;
     
     pthread_create(&capture_thread_id, NULL, camera_capture_loop, (void*)size);
+    pthread_detach(capture_thread_id);
+
+    camera_running = 1;
 }
 
 void camera_stop_capture() {
+    if(!camera_running) return;
+    camera_running = 0;
+
     pthread_mutex_lock(&signal_lock);
     stop_signal = 1;
     pthread_mutex_unlock(&signal_lock);
-
-    pthread_join(capture_thread_id, NULL);
 }
 
 void camera_grab_frame(uint8_t *frame, uint32_t width, uint32_t height) {

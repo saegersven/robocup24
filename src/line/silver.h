@@ -147,19 +147,28 @@ int line_silver() {
         //write_image(path, LINE_IMAGE_TO_PARAMS(frame));
         
         robot_servo(SERVO_CAM, CAM_POS_DOWN2, false, false);
-        delay(400);
+        delay(300);
         camera_grab_frame(frame, LINE_FRAME_WIDTH, LINE_FRAME_HEIGHT);
 
         robot_servo(SERVO_CAM, CAM_POS_DOWN, false, false);
-        delay(400);
+        delay(300);
 
         // Thresholding in here as some images are required by multiple functions
         num_black_pixels = 0;
         image_threshold(LINE_IMAGE_TO_PARAMS_GRAY(black), LINE_IMAGE_TO_PARAMS(frame), &num_black_pixels, is_black);
 
-        float black_percentage = (float)num_black_pixels/LINE_FRAME_WIDTH/LINE_FRAME_HEIGHT;
+        // Count pixels at the bottom to avoid far away shadows
+        num_black_pixels = 0;
+        for(int i = 15; i < LINE_FRAME_HEIGHT; i++) {
+            for(int j = 0; j < LINE_FRAME_WIDTH; j++) {
+                if(black[i * LINE_FRAME_WIDTH + j]) {
+                    num_black_pixels++;
+                }
+            }
+        }
+
+        float black_percentage = (float)num_black_pixels/LINE_FRAME_WIDTH/(LINE_FRAME_HEIGHT - 15);
         printf("%f\n", black_percentage);
-        delay(1000);
         if(black_percentage > 0.07f) {
             printf("Too many black pixels for evac zone.\n");
             
@@ -168,8 +177,6 @@ int line_silver() {
             return 0;
         } else {
             printf("Detected entrance!\n");
-            robot_drive(80, 80, 400);
-            delay(100);
             return 1;
         }
     }

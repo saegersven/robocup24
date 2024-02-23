@@ -83,18 +83,6 @@ void draw_mode_rescue() {
     draw_text("EVAC ZONE", 30, 24, 1.0f, 1.0f, 1.0f);
 
     char buf[32];
-    switch((int)numbers[NUMBER_RESCUE_OBJECTIVE]) {
-        case RESCUE_OBJECTIVE_CORNER:
-            sprintf(buf, "OBJ  CORNER");
-            break;
-        case RESCUE_OBJECTIVE_VICTIM:
-            sprintf(buf, "OBJ  VICTIM");
-            break;
-        case RESCUE_OBJECTIVE_EXIT:
-            sprintf(buf, "OBJ  EXIT");
-            break;
-    }
-    draw_text(buf, 220, 24, 1.0f, 1.0f, 1.0f);
 
     sprintf(buf, "X  %.1f", numbers[NUMBER_RESCUE_POS_X]);
     draw_text(buf, 360, 60, 0.0f, 0.8f, 1.0f);
@@ -120,8 +108,21 @@ void draw_mode_rescue() {
 
     int RESCUE_FRAME_DRAW_WIDTH = 320;
     int RESCUE_FRAME_DRAW_HEIGHT = 240;
-    draw_image(images[IMAGE_RESCUE_FRAME], RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3, 20, 60, RESCUE_FRAME_DRAW_WIDTH, RESCUE_FRAME_DRAW_HEIGHT, 0, 1.0f, 1.0f, 1.0f);
 
+    switch((int)numbers[NUMBER_RESCUE_OBJECTIVE]) {
+        case RESCUE_OBJECTIVE_CORNER:
+            sprintf(buf, "OBJ  CORNER");
+            draw_image(images[IMAGE_RESCUE_THRESHOLD], RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 1, 20, 60, RESCUE_FRAME_DRAW_WIDTH, RESCUE_FRAME_DRAW_HEIGHT, 0, 1.0f, 1.0f, 1.0f);
+            break;
+        case RESCUE_OBJECTIVE_VICTIM:
+            sprintf(buf, "OBJ  VICTIM");
+            draw_image(images[IMAGE_RESCUE_FRAME], RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3, 20, 60, RESCUE_FRAME_DRAW_WIDTH, RESCUE_FRAME_DRAW_HEIGHT, 0, 1.0f, 1.0f, 1.0f);
+            break;
+        case RESCUE_OBJECTIVE_EXIT:
+            sprintf(buf, "OBJ  EXIT");
+            break;
+    }
+    draw_text(buf, 220, 24, 1.0f, 1.0f, 1.0f);
     if(numbers[NUMBER_RESCUE_POS_X] != 0.0f && numbers[NUMBER_RESCUE_POS_Y] != 0.0f) {
         // Draw rect around victims
         float WIDTH = 40.0f;

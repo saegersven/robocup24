@@ -10,8 +10,8 @@
 #define GREEN_RATIO_THRESHOLD 0.56f
 #define GREEN_MIN_VALUE 13
 
-#define RED_RATIO_THRESHOLD 1.3f
-#define RED_MIN_VALUE 20
+#define RED_RATIO_THRESHOLD 1.2f
+#define RED_MIN_VALUE 13
 
 int is_black(uint8_t b, uint8_t g, uint8_t r);
 

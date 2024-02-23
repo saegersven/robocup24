@@ -16,6 +16,8 @@
 
 #include "utils.h"
 
+//#define ENABLE_LATENCY_TIMER
+
 static int serial_fd;
 static speed_t baud_rate = B115200;
 
@@ -29,6 +31,7 @@ void robot_init() {
 }
 
 void robot_serial_init() {
+#ifdef ENABLE_LATENCY_TIMER
     // Set latency timer to 2 ms
     FILE* latency_file = fopen("/sys/bus/usb-serial/drivers/ftdi_sio/ttyUSB0/latency_timer", "w");
 
@@ -38,6 +41,7 @@ void robot_serial_init() {
 
     char two[] = "2";
     fwrite(two, 1, 1, latency_file);
+#endif
 
     int status;
     struct termios options;

@@ -60,9 +60,9 @@
 #define CAM_POS_DOWN2 90
 #define CAM_POS_DOWN3 110
 #define CAM_POS_DOWN 135
-#define ARM_POS_DOWN 194
-#define ARM_POS_HALF_DOWN 125
-#define ARM_POS_UP 48
+#define ARM_POS_DOWN 225
+#define ARM_POS_HALF_DOWN 130
+#define ARM_POS_UP 40
 #define STRING_POS_CLOSED 130
 #define STRING_POS_OPEN 30
 

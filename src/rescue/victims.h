@@ -29,7 +29,7 @@ static TfLiteInterpreter *victims_interpreter;
 void victims_init() {
     victims_model = TfLiteModelCreateFromFile(VICTIMS_MODEL_PATH);
     victims_options = TfLiteInterpreterOptionsCreate();
-    TfLiteInterpreterOptionsSetNumThreads(victims_options, 1);
+    TfLiteInterpreterOptionsSetNumThreads(victims_options, 4);
 
     victims_interpreter = TfLiteInterpreterCreate(victims_model, victims_options);
 
@@ -43,6 +43,10 @@ void victims_destroy() {
     TfLiteInterpreterDelete(victims_interpreter);
     TfLiteInterpreterOptionsDelete(victims_options);
     TfLiteModelDelete(victims_model);
+
+    victims_interpreter = NULL;
+    victims_options = NULL;
+    victims_model = NULL;
 }
 
 #define DETECTION_THRESHOLD 0.5f
@@ -76,7 +80,9 @@ int victims_detect(uint8_t *image, struct Victim *victims) {
         return 0;
     }
 
+    long long start_time = milliseconds();
     TfLiteInterpreterInvoke(victims_interpreter);
+    printf("NN took: %lld ms\n", milliseconds() - start_time);
 
     float confidence[NUM_DETECTIONS];
     const TfLiteTensor *output_tensor0 = TfLiteInterpreterGetOutputTensor(victims_interpreter, 0);

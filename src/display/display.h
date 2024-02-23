@@ -24,6 +24,7 @@
 #define IMAGE_BLACK     1
 #define IMAGE_GREEN     2
 #define IMAGE_RESCUE_FRAME 3
+#define IMAGE_RESCUE_THRESHOLD 4
 
 #define NUM_IMAGES      16
 

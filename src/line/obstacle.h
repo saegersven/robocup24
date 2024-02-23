@@ -117,6 +117,7 @@ void line_obstacle_navigate() {
     robot_drive(80, 80, 450);
     robot_turn(DTOR(-25.0f));
     robot_drive(-80, -80, 300);
+    display_set_mode(MODE_LINE_FOLLOW);
 }
 
 void line_obstacle() {
