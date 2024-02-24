@@ -29,24 +29,31 @@ void init_robot() {
   }
   pinMode(13, OUTPUT);
 
+  pinMode(A1, OUTPUT);
+  digitalWrite(A1, LOW);
+  delay(30);
+
   Wire.begin();
 
   //Serial.println("Before dist init");
   //init_dist_sensors();
   //dist_sensors[0].setAddress(0x01);
+  digitalWrite(A1, HIGH);
+  delay(10);
   if (!dist_sensors[0].init()) {
     //Serial.println(i);
     panic(5000);
     //init_successful = false;
   } else {
-    //dist_sensors[0].setAddress(0x01);
+    dist_sensors[0].setAddress(0x50);
     dist_sensors[0].setMeasurementTimingBudget(20000);
-    dist_sensors[0].setTimeout(100);
+    dist_sensors[0].setTimeout(60);
     //dist_sensors[0].startContinuous();
   }
 
   //Serial.println("Before BNO init");
 
+  delay(30);
   if (!bno.begin()) {
     panic(5000);
   }

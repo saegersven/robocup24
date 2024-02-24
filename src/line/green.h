@@ -175,15 +175,17 @@ void line_green() {
         delay(40);
         robot_drive(80, 80, DISTANCE_FACTOR * (distance - 50));
 
-        robot_drive(60, 60, 270);
 
         if(green_result == RESULT_DEAD_END) {
+            robot_drive(60, 60, 190);
             robot_turn(R180);
-            robot_drive(80, 80, 100);
+            robot_drive(80, 80, 50);
         } else if(green_result == RESULT_LEFT) {
+                robot_drive(60, 60, 250);
             robot_turn(DTOR(-65.0f));
             delay(30);
         } else if(green_result == RESULT_RIGHT) {
+                robot_drive(60, 60, 250);
             robot_turn(DTOR(65.0f));
             delay(30);
         }

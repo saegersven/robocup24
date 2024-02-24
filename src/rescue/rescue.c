@@ -15,19 +15,25 @@
 static DECLARE_S_IMAGE(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3);
 
 void rescue_find_center() {
-	const int MAX_TIME = 5000;
+	const int MAX_TIME = 3000;
 
 	long long start_time = milliseconds();
 
-	while(milliseconds() - start_time < MAX_TIME) {
-		int dist = robot_sensor(DIST_FRONT);
-		delay(30);
-		if(dist > 800 && dist < 1100) {
-			robot_drive(127, 35, 0);
-		} else if (dist < 500) {
-			robot_drive(-35, -127, 0);
-		} else {
-			robot_drive(50, -50, 0);
+	for(int i = 0; i < 2; i++) {
+		while(milliseconds() - start_time < MAX_TIME) {
+			int dist = robot_sensor(DIST_FRONT);
+			delay(30);
+			if(dist > 800 && dist < 1100) {
+				robot_drive(127, 35, 0);
+			} else if (dist < 500) {
+				robot_drive(-35, -127, 0);
+			} else {
+				if(i == 1) {
+					robot_drive(60, -60, 0);
+				} else {
+					robot_drive(-60, 60, 0);
+				}
+			}
 		}
 	}
 	robot_stop();
@@ -69,6 +75,9 @@ int rescue_collect(int find_dead) {
 
 	int turn_counter = 0;
 	int none_found_counter = 0;
+
+	float classification_accumulator = 0.0f;
+	int num_classifications = 0;
 	while(1) {
 		robot_stop();
 		camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
@@ -80,6 +89,8 @@ int rescue_collect(int find_dead) {
 		delay(10);
 
 		if(ret) {
+			num_classifications++;
+			classification_accumulator += victim.dead;
 			display_set_number(NUMBER_RESCUE_POS_X, victim.x);
 			display_set_number(NUMBER_RESCUE_POS_Y, victim.y);
 			display_set_number(NUMBER_RESCUE_IS_DEAD, victim.dead + 1);
@@ -100,7 +111,7 @@ int rescue_collect(int find_dead) {
 					robot_drive(-60, -60, 180);
 					delay(50);
 					rescue_collect_victim();
-					return victim.dead + 1;
+					return (int)roundf(classification_accumulator / num_classifications) + 1;
 				}
 			} else {
 				float angle_vertical = (victim.y - 0.5f) * CAM_VERTICAL_FOV;
@@ -134,6 +145,9 @@ int rescue_collect(int find_dead) {
 			display_set_number(NUMBER_RESCUE_POS_X, 0.0f);
 			display_set_number(NUMBER_RESCUE_POS_Y, 0.0f);
 			display_set_number(NUMBER_RESCUE_IS_DEAD, 0.0f);
+
+			num_classifications = 0;
+			classification_accumulator = 0.0f;
 
 			cam_angle = CAM_POS_UP;
 			robot_servo(SERVO_CAM, cam_angle, false, false);
