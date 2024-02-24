@@ -122,27 +122,6 @@ void *camera_capture_loop(void *size) {
         exit(EXIT_FAILURE);
     }
 
-    // Set controls
-    struct v4l2_queryctrl queryctrl;
-    struct v4l2_control control;
-
-    memset(&queryctrl, 0, sizeof(queryctrl));
-    queryctrl.id = V4L2_CID_AUTOGAIN ;
-
-    xioctl(fd, VIDIOC_QUERYCTRL, &queryctrl);
-
-    if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED) {
-        printf("V4L2_CID_AUTOGAIN is not supported\n");
-    } else {
-        memset(&control, 0, sizeof (control));
-        control.id = V4L2_CID_AUTOGAIN;
-        control.value = 1;    // enable auto exposure
-
-        xioctl(fd, VIDIOC_S_CTRL, &control);
-    }
-
-
-    // Set format
     CLEAR(fmt);
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     fmt.fmt.pix.width       = width;
@@ -161,7 +140,6 @@ void *camera_capture_loop(void *size) {
             fmt.fmt.pix.width, fmt.fmt.pix.height);
     }
 
-    // Request buffers
     CLEAR(req);
     req.count = 2;
     req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -197,7 +175,6 @@ void *camera_capture_loop(void *size) {
     }
     type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    // Stream on
     xioctl(fd, VIDIOC_STREAMON, &type);
     while(1) {
         do {

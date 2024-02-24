@@ -1,3 +1,29 @@
+/****************************************************************************************************************
+ *                                                                                                              *
+ * ROBOT                                                                                                        *
+ *                                                                                                              *
+ * Controls robot hardware. Provides methods for driving actuators and for reading sensors. Communicates        *
+ * with Arduino over SPI (device 0.0). Also reads out GPIO (for start/stop button).                             *
+ *                                                                                                              *
+ * robot_init()                           - Initialize robot (GPIO and SPI communication)                       *
+ * robot_spi_init()                       - Initializes SPI                                                     *
+ *                                                                                                              *
+ * robot_drive(left, right, duration)     - Sends drive command to Arduino with motor speeds and sends          *
+ *                                          stop command after 'duration' milliseconds.                         *
+ * robot_stop()                           - Send drive command to Arduino with speed 0.                         *
+ * robot_turn(angle)                      - Send turn command to Arduino and wait for turning to finish.        *
+ *                                                                                                              *
+ * robot_servo(angle, stall)              - Send servo command to Arduino. Setting stall to true lets servo     *
+ *                                          stay attached after movement. Setting stall to false detaches       *
+ *                                          servo after movement. Angle of zero means no movement.              *
+ * robot_button()                         - Returns true if start/stop button is pressed.                       *
+ *                                                                                                              *
+ * robot_sensor(sensor_id)                - Sends sensor command to Arduino and returns response.               *
+ * robot_distance_avg(sensor_id, n, p)    - Reads sensor n times and returns the average of the readings        *
+ *                                          in the middle (1 - 2*p)*100 %.                                      *
+ *                                                                                                              *
+ ****************************************************************************************************************/
+
 #pragma once
 
 #include <stdbool.h>
@@ -29,7 +55,7 @@
 
 #define CAM_HEIGHT_MM 140
 
-#define CAM_POS_UP 46
+#define CAM_POS_UP 42
 #define CAM_POS_HORIZONTAL 36
 #define CAM_POS_DOWN2 90
 #define CAM_POS_DOWN3 110

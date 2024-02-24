@@ -64,13 +64,15 @@ int rescue_collect(int find_dead) {
 	int turn_counter = 0;
 	while(1) {
 		robot_stop();
-		
-		// Restart camera for exposure adjustment
 		camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
 		camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
 		camera_stop_capture();
+		printf("Frame grabbed\n");
+		int ret = victims_find(frame, find_dead, &victim);
+		printf("%d\n", ret);
+		delay(10);
 
-		if(victims_find(frame, find_dead, &victim)) {
+		if(ret) {
 			display_set_number(NUMBER_RESCUE_POS_X, victim.x);
 			display_set_number(NUMBER_RESCUE_POS_Y, victim.y);
 			display_set_number(NUMBER_RESCUE_IS_DEAD, victim.dead + 1);
@@ -116,17 +118,12 @@ int rescue_collect(int find_dead) {
 
 				if(cam_angle > 100 && dist < 105.0f) {
 					printf("Final approach\n");
-
-					// Fixed cam angle from here on
 					cam_angle = 120;
 					robot_servo(SERVO_CAM, cam_angle, false, false);
 					final_approach = 1;
 				}
 			}
 		} else {
-			cam_angle = CAM_POS_UP;
-			robot_servo(SERVO_CAM, cam_angle, false, false);
-
 			display_set_number(NUMBER_RESCUE_POS_X, 0.0f);
 			display_set_number(NUMBER_RESCUE_POS_Y, 0.0f);
 			display_set_number(NUMBER_RESCUE_IS_DEAD, 0.0f);
@@ -185,7 +182,7 @@ int rescue_collect_test(int find_dead) {
 			robot_servo(SERVO_CAM, cam_angle, false, false);
 
 			robot_turn(DTOR(30.0f));
-			delay(200);
+			delay(250);
 		}
 	}
 }
@@ -196,7 +193,7 @@ void rescue_drop_victim() {
     delay(500);
     robot_servo(SERVO_STRING, STRING_POS_OPEN, false, false);
     robot_servo(SERVO_ARM, ARM_POS_HALF_DOWN, true, true);
-    delay(800);
+    delay(1000);
     robot_servo(SERVO_STRING, STRING_POS_CLOSED, true, true);
     delay(400);
     robot_servo(SERVO_STRING, STRING_POS_OPEN, false, false);
@@ -210,7 +207,7 @@ void rescue_drop_victim() {
     robot_servo(SERVO_ARM, ARM_POS_HALF_DOWN, true, true);
     delay(250);
     robot_servo(SERVO_ARM, ARM_POS_UP, false, false);
-    delay(300);
+    delay(600);
 }
 
 void rescue_deliver(int is_dead) {
@@ -229,12 +226,11 @@ void rescue_deliver(int is_dead) {
 	float x_corner = 0.0f;
 	float last_x_corner = 0.0f;
 	
-	delay(50);
-	// For exposure adjustment, does not always work
+	delay(300);
 	camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
 	for(int i = 0; i < 5; i++) camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
 	camera_stop_capture();
-	delay(100);
+	delay(200);
 	camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
 
 	int turn_counter = 0;
@@ -313,23 +309,6 @@ void rescue_deliver(int is_dead) {
 			turn_counter = 0;
 		}
 	}
-}
-
-void rescue_reposition() {
-	int dist_front = robot_distance_avg(DIST_FRONT, 10, 4);
-	delay(30);
-	int dist_right_front = robot_distance_avg(DIST_RIGHT_FRONT, 10, 4);
-	delay(30);
-	int dist_right_rear = robot_distance_avg(DIST_RIGHT_REAR, 10, 4);
-
-	float x = (dist_right_front + dist_right_rear) / 2.0f - 500;
-	float y = dist_front - 500;
-
-	float angle = atan2f(x, y);
-	float mag = sqrtf(x*x + y*y);
-
-	robot_turn(angle);
-	robot_drive(100, 100, mag);
 }
 
 void rescue() {
