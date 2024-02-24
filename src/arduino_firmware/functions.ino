@@ -32,7 +32,18 @@ void init_robot() {
   Wire.begin();
 
   //Serial.println("Before dist init");
-  init_dist_sensors();
+  //init_dist_sensors();
+  //dist_sensors[0].setAddress(0x01);
+  if (!dist_sensors[0].init()) {
+    //Serial.println(i);
+    panic(5000);
+    //init_successful = false;
+  } else {
+    //dist_sensors[0].setAddress(0x01);
+    dist_sensors[0].setMeasurementTimingBudget(20000);
+    dist_sensors[0].setTimeout(100);
+    //dist_sensors[0].startContinuous();
+  }
 
   //Serial.println("Before BNO init");
 

@@ -127,6 +127,8 @@ int main() {
 
         button_loop(0, 0);
 
+        exit(1);
+
         stop();
 
         button_loop(1, 0);

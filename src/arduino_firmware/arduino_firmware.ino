@@ -36,7 +36,9 @@ void parse_message() {
     } else if (message[1] >= SENSOR_DIST_START && message[1] <= SENSOR_DIST_END) {
       // One of the distance sensors
       int sensor_id = message[1] - SENSOR_DIST_START;
-      if (sensor_id < NUM_DIST_SENSORS) {
+      if(sensor_id != 0) {
+        value = 8000;
+      } else if (sensor_id < NUM_DIST_SENSORS) {
         value = distance(sensor_id);
       }
     } else if(message[1] == SENSOR_BAT_VOLTAGE) {

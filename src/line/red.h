@@ -2,7 +2,7 @@
 
 #include "line_private.h"
 
-#define LINE_RED_MIN_PERCENTAGE 0.27f
+#define LINE_RED_MIN_PERCENTAGE 0.23f
 
 void line_red() {
     num_red_pixels = 0;

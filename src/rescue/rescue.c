@@ -15,16 +15,22 @@
 static DECLARE_S_IMAGE(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3);
 
 void rescue_find_center() {
-	float x = robot_distance_avg(DIST_FRONT, 10, 4) - 500;
-	float y = (robot_distance_avg(DIST_RIGHT_FRONT, 10, 4) + robot_distance_avg(DIST_RIGHT_REAR, 10, 4)) / 2.0f - 500;
+	const int MAX_TIME = 5000;
 
-	//printf("%f, %f\n", x, y);
+	long long start_time = milliseconds();
 
-	float angle = atan2f(y, x);
-	robot_turn(angle);
-
-	float mag = sqrtf(x*x + y*y);
-	robot_drive(100, 100, (int)mag);
+	while(milliseconds() - start_time < MAX_TIME) {
+		int dist = robot_sensor(DIST_FRONT);
+		delay(30);
+		if(dist > 800 && dist < 1100) {
+			robot_drive(127, 35, 0);
+		} else if (dist < 500) {
+			robot_drive(-35, -127, 0);
+		} else {
+			robot_drive(50, -50, 0);
+		}
+	}
+	robot_stop();
 }
 
 void rescue_collect_victim() {
@@ -62,6 +68,7 @@ int rescue_collect(int find_dead) {
 	int final_approach = 0;
 
 	int turn_counter = 0;
+	int none_found_counter = 0;
 	while(1) {
 		robot_stop();
 		camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
@@ -116,7 +123,7 @@ int rescue_collect(int find_dead) {
 
 				robot_servo(SERVO_CAM, cam_angle, false, false);
 
-				if(cam_angle > 100 && dist < 105.0f) {
+				if(cam_angle > 110 && dist < 105.0f) {
 					printf("Final approach\n");
 					cam_angle = 120;
 					robot_servo(SERVO_CAM, cam_angle, false, false);
@@ -136,8 +143,12 @@ int rescue_collect(int find_dead) {
 			turn_counter++;
 			delay(250);
 			if(turn_counter == 12) {
+				if(none_found_counter == 1) {
+					find_dead = 1;
+				}
 				rescue_find_center();
 				rescue_find_center();
+				none_found_counter++;
 				turn_counter = 0;
 			}
 		}
@@ -286,7 +297,7 @@ void rescue_deliver(int is_dead) {
 			*/
 			robot_drive(-100, 0, 250);
 			robot_drive(0, -100, 350);
-			robot_drive(50, 50, 850);
+			robot_drive(50, 50, 950);
 
 			// Drop victim
 			rescue_drop_victim();
@@ -304,7 +315,6 @@ void rescue_deliver(int is_dead) {
 
 		if(turn_counter == 18) {
 			rescue_find_center();
-			rescue_find_center();
 
 			turn_counter = 0;
 		}
@@ -316,9 +326,9 @@ void rescue() {
 	display_set_image(IMAGE_RESCUE_FRAME, frame);
 	display_set_image(IMAGE_RESCUE_THRESHOLD, corner_thresh);
 
-	robot_drive(127, 127, 800);
+	robot_drive(127, 127, 1000);
 
-	int dist = robot_distance_avg(DIST_RIGHT_FRONT, 10, 2);
+	/*int dist = robot_distance_avg(DIST_RIGHT_FRONT, 10, 2);
 	printf("Dist right front: %d\n", dist);
 	if(dist < 400) {
 		robot_turn(DTOR(130.0f));
@@ -328,7 +338,7 @@ void rescue() {
 		robot_turn(DTOR(-130.0f));
 		robot_drive(-100, -100, 800);
 		robot_turn(DTOR(-100.0f));
-	}
+	}*/
 
 	//camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
 
@@ -352,7 +362,7 @@ void rescue() {
 			rescue_deliver(ret == 2);
 		} else {
 			rescue_find_center();
-			rescue_find_center();
+			robot_drive(-70, -70, 400);
 		}
 		
 		num_victims++;
