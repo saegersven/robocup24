@@ -354,25 +354,29 @@ void rescue_find_exit() {
 			int i = 0;
 			int last_min_dist_temp = last_min_dist; 
 			while (1) {
-				robot_drive(50, -50, 20);
-				dist = robot_sensor(DIST_FRONT);
+				robot_drive(50, -50, 50);
+				dist = robot_distance_avg(DIST_FRONT, 3, 1);
 				if (dist < last_min_dist) last_min_dist_temp = dist;
 				if (dist < last_min_dist) break;
 				++i;
 			}
 			printf("found second wall\n");
 
-			last_min_dist = last_min_dist_temp;
-			for (int j = 0; j < i / 2; ++j) robot_drive(-50, 50, 20);
-			robot_drive(-50, 50, 25);
-			if (last_min_dist < 350) {
-				robot_drive(100, 100, 300);
+			last_min_dist = last_min_dist_temp * 1.5;
+			for (int j = 0; j < i / 2.0f; ++j) {
+				robot_drive(-50, 50, 50);
+				robot_distance_avg(DIST_FRONT, 3, 1);
+			}
+			robot_drive(-50, 50, 50);
+			printf("LAST MINDIST: %d \n", last_min_dist);
+			if (last_min_dist < 300) {
+				robot_drive(100, 100, 500);
 				return;
 			}
-			robot_drive(50, 50, 500);
+			robot_drive(50, 50, 300);
 			robot_drive(-100, 100, 200);
 		} else {
-			robot_drive(50, -50, 20);
+			robot_drive(50, -50, 50);
 		}
 	}
 }
@@ -381,10 +385,6 @@ void rescue() {
 	display_set_mode(MODE_RESCUE);
 	display_set_image(IMAGE_RESCUE_FRAME, frame);
 	display_set_image(IMAGE_RESCUE_THRESHOLD, corner_thresh);
-
-	robot_drive(100, 100, 1000);
-	rescue_find_exit();
-	return;
 
 	/*int dist = robot_distance_avg(DIST_RIGHT_FRONT, 10, 2);
 	printf("Dist right front: %d\n", dist);
@@ -399,6 +399,8 @@ void rescue() {
 	}*/
 
 	//camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
+
+	robot_drive(100, 100, 800);
 
 	robot_servo(SERVO_CAM, CAM_POS_UP, false, false);
 	robot_servo(SERVO_ARM, ARM_POS_UP, false, false);
@@ -418,13 +420,18 @@ void rescue() {
 
 		if(ret) {
 			rescue_deliver(ret == 2);
+			if(ret == 2) {
+				break;
+			}
 		} else {
 			rescue_find_center();
 			robot_drive(-70, -70, 400);
 		}
 		
 		num_victims++;
-	} 
+	}
+	rescue_find_center();
+	rescue_find_exit();
 
 	rescue_cleanup();
 }
