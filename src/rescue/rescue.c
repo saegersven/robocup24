@@ -15,18 +15,26 @@
 static DECLARE_S_IMAGE(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3);
 
 void rescue_find_center() {
-	const int MAX_TIME = 3000;
-
-	long long start_time = milliseconds();
+	const int MAX_TIME = 2500;
 
 	for(int i = 0; i < 2; i++) {
+		long long start_time = milliseconds();
+
 		while(milliseconds() - start_time < MAX_TIME) {
 			int dist = robot_sensor(DIST_FRONT);
 			delay(30);
 			if(dist > 800 && dist < 1100) {
-				robot_drive(127, 35, 0);
+				if(i == 1) {
+					robot_drive(127, 35, 0);
+				} else {
+					robot_drive(35, 127, 0);
+				}
 			} else if (dist < 500) {
-				robot_drive(-35, -127, 0);
+				if(i == 1) {
+					robot_drive(-35, -127, 0);
+				} else {
+					robot_drive(-127, -35, 0);
+				}
 			} else {
 				if(i == 1) {
 					robot_drive(60, -60, 0);
@@ -160,7 +168,6 @@ int rescue_collect(int find_dead) {
 				if(none_found_counter == 1) {
 					find_dead = 1;
 				}
-				rescue_find_center();
 				rescue_find_center();
 				none_found_counter++;
 				turn_counter = 0;
@@ -335,12 +342,49 @@ void rescue_deliver(int is_dead) {
 	}
 }
 
+void rescue_find_exit() {
+	printf("Finding exit...\n");
+	// we are in the center
+	int last_min_dist = 1000;
+	int dist;
+	while (1) {
+		if (robot_sensor(DIST_FRONT) > last_min_dist) {
+			printf("Distance > 1000 (aka first wall)");
+			robot_drive(50, -50, 50);
+			int i = 0;
+			int last_min_dist_temp = last_min_dist; 
+			while (1) {
+				robot_drive(50, -50, 20);
+				dist = robot_sensor(DIST_FRONT);
+				if (dist < last_min_dist) last_min_dist_temp = dist;
+				if (dist < last_min_dist) break;
+				++i;
+			}
+			printf("found second wall\n");
+
+			last_min_dist = last_min_dist_temp;
+			for (int j = 0; j < i / 2; ++j) robot_drive(-50, 50, 20);
+			robot_drive(-50, 50, 25);
+			if (last_min_dist < 350) {
+				robot_drive(100, 100, 300);
+				return;
+			}
+			robot_drive(50, 50, 500);
+			robot_drive(-100, 100, 200);
+		} else {
+			robot_drive(50, -50, 20);
+		}
+	}
+}
+
 void rescue() {
 	display_set_mode(MODE_RESCUE);
 	display_set_image(IMAGE_RESCUE_FRAME, frame);
 	display_set_image(IMAGE_RESCUE_THRESHOLD, corner_thresh);
 
-	robot_drive(127, 127, 1000);
+	robot_drive(100, 100, 1000);
+	rescue_find_exit();
+	return;
 
 	/*int dist = robot_distance_avg(DIST_RIGHT_FRONT, 10, 2);
 	printf("Dist right front: %d\n", dist);
