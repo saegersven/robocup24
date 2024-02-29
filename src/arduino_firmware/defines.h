@@ -18,11 +18,6 @@
 #define PIN_BTN             0
 #define PIN_BATTERY_VOLTAGE A7
 
-// shift register is used to multiplex VL53L0X
-#define PIN_SHIFT_REGISTER_DATA A3
-#define PIN_SHIFT_REGISTER_LATCH A2
-#define PIN_SHIFT_REGISTER_CLOCK A1
-
 #define REAR_WHEEL_FACTOR 1.1f
 
 #define NUM_SERVOS 3
@@ -32,10 +27,8 @@ Servo servos[NUM_SERVOS];
 
 #define NUM_DIST_SENSORS 3
 VL53L0X dist_sensors[NUM_DIST_SENSORS];
-
-byte dist_sensors_addresses[NUM_DIST_SENSORS] = {0x50, 0x51, 0x52};
-// first sensor; first | second; first | second | third 
-byte dist_sensors_bitmasks[NUM_DIST_SENSORS] = {B01000000, B01100000, B01100010};
+int dist_pins[NUM_DIST_SENSORS] = {A1, A2, A3};
+byte dist_sensors_addresses[NUM_DIST_SENSORS] = {0x01, 0x02, 0x03};
 
 Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
 static float heading, pitch;

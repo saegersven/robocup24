@@ -29,30 +29,10 @@ void init_robot() {
   }
   pinMode(13, OUTPUT);
 
-  pinMode(A1, OUTPUT);
-  digitalWrite(A1, LOW);
-  delay(30);
-
   Wire.begin();
-
-  //Serial.println("Before dist init");
-  //init_dist_sensors();
-  //dist_sensors[0].setAddress(0x01);
-  digitalWrite(A1, HIGH);
-  delay(10);
-  if (!dist_sensors[0].init()) {
-    //Serial.println(i);
-    panic(5000);
-    //init_successful = false;
-  } else {
-    dist_sensors[0].setAddress(0x50);
-    dist_sensors[0].setMeasurementTimingBudget(20000);
-    dist_sensors[0].setTimeout(60);
-    //dist_sensors[0].startContinuous();
-  }
-
-  //Serial.println("Before BNO init");
-
+  
+  init_dist_sensors();  
+  
   delay(30);
   if (!bno.begin()) {
     panic(5000);
@@ -229,29 +209,21 @@ float get_pitch() {
 // ...
 
 void init_dist_sensors() {
-  pinMode(PIN_SHIFT_REGISTER_LATCH, OUTPUT);
-  pinMode(PIN_SHIFT_REGISTER_CLOCK, OUTPUT);
-  pinMode(PIN_SHIFT_REGISTER_DATA, OUTPUT);
+  for (int i = 0; i < NUM_DIST_SENSORS; ++i) pinMode(dist_pins[i], OUTPUT);
 
   bool init_successful = true;
   int d = 10; // is increased after init fail
 
   do {
-    //Serial.println(init_successful);
     // power off all sensors
-    digitalWrite(PIN_SHIFT_REGISTER_LATCH, LOW);
-    shiftOut(PIN_SHIFT_REGISTER_DATA, PIN_SHIFT_REGISTER_CLOCK, MSBFIRST, B00000000);
-    digitalWrite(PIN_SHIFT_REGISTER_LATCH, HIGH);
+    for (int i = 0; i < NUM_DIST_SENSORS; ++i) digitalWrite(dist_pins[i], LOW);
     delay(d);
 
+    // power on one at a time
     for (int i = 0; i < NUM_DIST_SENSORS; ++i) {
-      digitalWrite(PIN_SHIFT_REGISTER_LATCH, LOW);
-      shiftOut(PIN_SHIFT_REGISTER_DATA, PIN_SHIFT_REGISTER_CLOCK, MSBFIRST, dist_sensors_bitmasks[i]);
-      digitalWrite(PIN_SHIFT_REGISTER_LATCH, HIGH);
+      digitalWrite(dist_pins[i], HIGH);
       delay(d);
       if (!dist_sensors[i].init()) {
-        //Serial.println(i);
-
         init_successful = false;
       } else {
         dist_sensors[i].setAddress(dist_sensors_addresses[i]);
@@ -268,12 +240,6 @@ void init_dist_sensors() {
     panic(5000);
     //Serial.println("Panic!");
   }
-}
-
-void write_to_shift_register(byte data) {
-  digitalWrite(PIN_SHIFT_REGISTER_LATCH, LOW);
-  shiftOut(PIN_SHIFT_REGISTER_DATA, PIN_SHIFT_REGISTER_CLOCK, MSBFIRST, data);
-  digitalWrite(PIN_SHIFT_REGISTER_LATCH, HIGH);
 }
 
 int16_t distance(int sensor_id) {
