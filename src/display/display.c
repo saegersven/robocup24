@@ -21,7 +21,7 @@ void draw_mode_idle() {
     draw_text("IDLE", 220, 110, 1.0f, 1.0f, 1.0f);
     draw_text("PRESS BUTTON", 180, 160, 0.6f, 0.6f, 0.6f);
     char buf[32];
-    sprintf(buf, "BAT  %.1f V", numbers[NUMBER_BAT_VOLTAGE] / 10.0f / 4.0f + 0.2f);
+    sprintf(buf, "BAT  %.1f V", numbers[NUMBER_BAT_VOLTAGE] / 10.0f / 4.0f);
     
     float color_fps = map(numbers[NUMBER_BAT_VOLTAGE], 3.8f, 4.2f, 0.0f, 0.8f);
     if(color_fps < 0.0f) color_fps = 0.0f;
