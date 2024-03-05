@@ -34,6 +34,7 @@
 // GPIO Pins
 #define PIN_BTN 22 // TODO
 
+// Servo Pins
 #define SERVO_CAM 0
 #define SERVO_ARM 1
 #define SERVO_STRING 2

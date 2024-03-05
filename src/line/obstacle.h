@@ -124,8 +124,6 @@ void line_obstacle() {
     if(obstacle_counter % 4 == 0 && obstacle_enabled) {
         int dist = robot_sensor(DIST_FRONT);
 
-        printf("Dist: %d\n", dist);
-
         if(dist < 160) {
             for(int i = 0; i < 3; i++) {
                 dist = robot_sensor(DIST_FRONT);

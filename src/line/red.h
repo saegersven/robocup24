@@ -8,8 +8,6 @@ void line_red() {
     num_red_pixels = 0;
     image_threshold(LINE_IMAGE_TO_PARAMS_GRAY(red), LINE_IMAGE_TO_PARAMS(frame), &num_red_pixels, is_red);
 
-    printf("New threshold, num pixels: %d\n", num_red_pixels);
-
     float red_percentage = (float)num_red_pixels / (LINE_FRAME_WIDTH * LINE_FRAME_HEIGHT);
 
     if(red_percentage > LINE_RED_MIN_PERCENTAGE) {

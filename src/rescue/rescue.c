@@ -332,14 +332,16 @@ void rescue_deliver(int is_dead) {
 }
 
 void rescue_find_exit() {
-	printf("Finding exit...\n");
+	printf("Looking for exit...\n");
 	// we are in the center
 	int last_min_dist = 1000;
-	int dist;
 	while (1) {
-		if (robot_sensor(DIST_FRONT) > last_min_dist) {
-			printf("Distance > 1000 (aka first wall)");
-			robot_drive(50, -50, 50);
+		int dist = robot_sensor(DIST_FRONT);
+		if (dist > last_min_dist) {
+			robot_drive(-50, 50, 50);
+			int dist_first_wall = robot_sensor(DIST_FRONT);
+			printf("Found first wall. Distance: %d \n", dist_first_wall);
+			robot_drive(50, -50, 100);
 			int i = 0;
 			int last_min_dist_temp = last_min_dist; 
 			while (1) {
@@ -349,13 +351,19 @@ void rescue_find_exit() {
 				if (dist < last_min_dist) break;
 				++i;
 			}
-			printf("found second wall\n");
+			int dist_second_wall = dist;
+			printf("Found second wall. Distance: %d \n", dist_second_wall);
+			delay(3000);
 
 			last_min_dist = last_min_dist_temp * 1.5;
 			for (int j = 0; j < i / 2.0f; ++j) {
 				robot_drive(-50, 50, 50);
 				robot_distance_avg(DIST_FRONT, 3, 1);
 			}
+			// now drive a bit sideways to center in front of exit
+			robot_turn(DTOR(-90.0f));
+			robot_drive(127, 127, 100);
+			robot_turn(DTOR(90.0f));
 			robot_drive(-50, 50, 50);
 			printf("LAST MINDIST: %d \n", last_min_dist);
 			if (last_min_dist < 300) {
@@ -368,6 +376,69 @@ void rescue_find_exit() {
 			robot_drive(50, -50, 50);
 		}
 	}
+}
+
+void rescue_find_exit2() {
+	int dist;
+	do {
+		robot_drive(70, -70, 20);
+		dist = robot_distance_avg(DIST_FRONT, 5, 1);
+		printf("Distance: %d \n", dist);
+	} while (dist < 1000);
+	delay(2000);
+	robot_drive(-50, 50, 150);
+	int last_dist = 2000;
+	int current_dist = robot_distance_avg(DIST_FRONT, 10, 2);
+	while (current_dist < last_dist) {
+		last_dist = current_dist;
+		current_dist = robot_distance_avg(DIST_FRONT, 10, 2);
+		printf("Last dist: %d \t Current dist: %d \t delta: %d \n", last_dist, current_dist, last_dist - current_dist);
+		robot_drive(-50, 50, 80);
+	}
+	printf("Centered to wall\n");
+	delay(5000);
+	
+}
+
+void rescue_find_exit3() {
+	robot_drive(-100, -100, 200);
+	robot_turn(DTOR(-90.0f));
+	robot_drive(50, 50, 0);
+	while (robot_sensor(DIST_FRONT) > 200);
+	robot_turn(DTOR(135.0f));
+	robot_drive(-100, -100, 500);
+	robot_turn(DTOR(-180.0f));
+	robot_drive(-100, -100, 200);
+	rescue_realign_wall();
+
+	exit(0);
+
+}
+
+float get_angle_to_right_wall() {
+	float dist_front = robot_sensor(DIST_RIGHT_FRONT);
+	float dist_rear = robot_sensor(DIST_RIGHT_REAR);
+	printf("Front: %d   Back %d \n", dist_front, dist_rear);
+	float angle = atan((dist_front - (dist_rear + 10)) / 115.0f);
+	return (angle * 180) / 3.141592;
+}
+
+// realigns robot parallel to wall
+void rescue_realign_wall() {
+	/*
+	robot_turn(DTOR(90.0f));
+	robot_drive(-100, -100, 200);
+	robot_turn(DTOR(-180.0f));
+	robot_drive(-70, -70, 400);
+	robot_drive(100, 100, 200);
+	robot_turn(DTOR(180.0f));
+	robot_drive(100, 100, 100);
+	while (robot_sensor(DIST_FRONT) > 100) robot_drive(100, 100, 30);
+	robot_turn(DTOR(-90.0f));
+	*/
+	printf("Angle: %.6f \n", get_angle_to_right_wall());
+
+
 }
 
 void rescue() {
@@ -388,8 +459,15 @@ void rescue() {
 	}*/
 
 	//camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
+	
+	// TEST
+	rescue_find_exit3();
+	return;
+	// TEST END
+
 
 	robot_drive(100, 100, 800);
+
 
 	robot_servo(SERVO_CAM, CAM_POS_UP, false, false);
 	robot_servo(SERVO_ARM, ARM_POS_UP, false, false);
