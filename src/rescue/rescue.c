@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "../vision.h"
 #include "../camera.h"
@@ -400,44 +401,138 @@ void rescue_find_exit2() {
 	
 }
 
+// returns true if there is a corner in current frame (maybe tilt cam slightly upwards)
+// TODO @saegersven
+bool rescue_is_corner() {
+	return false;
+}
+
+// returns true if there is a black stripe instead of a silver one
+// TODO @saegersven
+bool rescue_is_exit() {
+	return false;
+}
+
+// realigns robot parallel to wall
+void rescue_realign_wall() {
+	float angle = get_angle_to_right_wall();
+	printf("Turning angle: %f (= %f deg) \n", angle, RTOD(angle));
+
+	// gyro is not reliable for small turns, so only use for large ones
+	if (angle > DTOR(20.0f) || angle < DTOR(-20.0f)) robot_turn(angle);
+	else robot_drive(50, -50, MS_PER_RAD * angle);
+}
+
+float get_angle_to_right_wall() {
+	float angle = 0.0001f;
+	int dist_front = robot_distance_avg(DIST_RIGHT_FRONT, 10, 2);
+	int dist_rear = robot_distance_avg(DIST_RIGHT_REAR, 10, 2);
+
+	// only calculate angle if there actually is a wall to realign to
+	if (dist_front < 400 && dist_rear < 400) {
+		printf("Front: %d   Back (+10mm offset included) %d \n", dist_front, dist_rear + 10);
+		angle = atan((dist_front - (dist_rear + 10)) / 115.0f);		
+	}
+	return angle;
+}
+
 void rescue_find_exit3() {
 	robot_drive(-100, -100, 200);
 	robot_turn(DTOR(-90.0f));
 	robot_drive(50, 50, 0);
 	while (robot_sensor(DIST_FRONT) > 200);
 	robot_turn(DTOR(135.0f));
-	robot_drive(-100, -100, 500);
+	robot_drive(-100, -100, 400);
 	robot_turn(DTOR(-180.0f));
 	robot_drive(-100, -100, 200);
 	rescue_realign_wall();
-
-	exit(0);
-
-}
-
-float get_angle_to_right_wall() {
-	float dist_front = robot_sensor(DIST_RIGHT_FRONT);
-	float dist_rear = robot_sensor(DIST_RIGHT_REAR);
-	printf("Front: %d   Back %d \n", dist_front, dist_rear);
-	float angle = atan((dist_front - (dist_rear + 10)) / 115.0f);
-	return (angle * 180) / 3.141592;
-}
-
-// realigns robot parallel to wall
-void rescue_realign_wall() {
 	/*
-	robot_turn(DTOR(90.0f));
-	robot_drive(-100, -100, 200);
-	robot_turn(DTOR(-180.0f));
-	robot_drive(-70, -70, 400);
-	robot_drive(100, 100, 200);
-	robot_turn(DTOR(180.0f));
-	robot_drive(100, 100, 100);
-	while (robot_sensor(DIST_FRONT) > 100) robot_drive(100, 100, 30);
-	robot_turn(DTOR(-90.0f));
-	*/
-	printf("Angle: %.6f \n", get_angle_to_right_wall());
+	millis_since_last_realign = milliseconds();
 
+	robot_drive(50, 50, 0);
+	while (robot_sensor(DIST_RIGHT_FRONT) > 150 || robot_distance_avg(DIST_RIGHT_FRONT, 10, 2) > 170) {
+		if (milliseconds() - millis_since_last_realign > 500) {
+			robot_stop();
+			rescue_realign_wall();
+			millis_since_last_realign = milliseconds();
+			robot_drive(50, 50, 0);
+		}
+	}
+	robot_stop();
+	*/
+
+	bool already_checked_for_corner = false;
+	long long millis_since_last_realign = milliseconds();
+	while (1) {
+		robot_drive(50, 50, 0);
+
+		// align every 500ms
+		if (milliseconds() - millis_since_last_realign > 500) {
+			robot_stop();
+			rescue_realign_wall();
+			millis_since_last_realign = milliseconds();
+			robot_drive(50, 50, 0);
+		}
+
+		int front_dist = robot_sensor(DIST_FRONT);
+		int side_dist = robot_sensor(DIST_RIGHT_FRONT);
+
+		// There are 4 different cases:
+
+		// 1) 35cm in front of wall, check for corner
+		// 2) 10cm in front of wall, turn 90°
+		// 3) exit front
+		// 4) exit side
+
+		// 1. case
+		if (!already_checked_for_corner && front_dist < 350 && robot_distance_avg(DIST_FRONT, 10, 2) < 350) {
+			printf("Case 1\n");
+			if (rescue_is_corner()) {
+				robot_turn(DTOR(135.0f));
+				robot_drive(50, 50, 0);
+				while (robot_sensor(DIST_FRONT) > 200);
+				robot_turn(DTOR(135.0f));
+				robot_drive(-100, -100, 400);
+				robot_turn(DTOR(-180.0f));
+				robot_drive(-100, -100, 200);
+			} else {
+				already_checked_for_corner = true;
+			}
+		}
+
+		// 2. case
+		else if (front_dist < 100) {
+			printf("Case 2\n");
+			robot_turn(DTOR(90.0f));
+			robot_drive(-100, -100, 200);
+			robot_turn(DTOR(-180.0f));
+			robot_drive(-50, -50, 500);
+			millis_since_last_realign = milliseconds();
+		}
+		
+		// 3. case
+		else if (side_dist > 200 && front_dist > 1000) {
+			printf("Case 3\n");
+			if (rescue_is_exit()) {
+				return;
+			} else {
+				// no exit, so turn 90° and continue
+				robot_drive(-100, -100, 350);
+				robot_turn(DTOR(90.0f));
+				robot_drive(-100, -100, 250);
+				robot_turn(DTOR(-180.0f));
+				robot_drive(-100, -100, 250);
+				millis_since_last_realign = milliseconds();
+			}
+		}
+
+		// 4. case
+		else if (side_dist > 200 && front_dist < 1000) {
+			printf("Case 4\n");
+			// TODO
+		}
+		
+	}
 
 }
 
@@ -446,7 +541,12 @@ void rescue() {
 	display_set_image(IMAGE_RESCUE_FRAME, frame);
 	display_set_image(IMAGE_RESCUE_THRESHOLD, corner_thresh);
 
-	/*int dist = robot_distance_avg(DIST_RIGHT_FRONT, 10, 2);
+	// TEST
+	rescue_find_exit3();
+	return;
+	// TEST END
+
+	int dist = robot_distance_avg(DIST_RIGHT_FRONT, 10, 2);
 	printf("Dist right front: %d\n", dist);
 	if(dist < 400) {
 		robot_turn(DTOR(130.0f));
@@ -456,16 +556,10 @@ void rescue() {
 		robot_turn(DTOR(-130.0f));
 		robot_drive(-100, -100, 800);
 		robot_turn(DTOR(-100.0f));
-	}*/
+	}
 
 	//camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
 	
-	// TEST
-	rescue_find_exit3();
-	return;
-	// TEST END
-
-
 	robot_drive(100, 100, 800);
 
 

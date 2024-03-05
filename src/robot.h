@@ -73,6 +73,10 @@
 #define CAM_HORIZONTAL_FOV DTOR(62.0f)
 #define CAM_VERTICAL_FOV DTOR(49.0f)
 
+// millis it takes to turn one rad at 50% speed
+// robot_drive(50, -50, MS_PER_RAD) turns one RAD
+#define MS_PER_RAD 22
+
 // Initialization
 void robot_init();
 void robot_serial_init();
