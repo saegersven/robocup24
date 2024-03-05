@@ -178,7 +178,8 @@ void line_green() {
 
         if(green_result == RESULT_DEAD_END) {
             robot_drive(60, 60, 170);
-            robot_turn(R180);
+            if (milliseconds() % 2 == 0) robot_turn(R180);
+            else robot_turn(-R180);
             robot_drive(80, 80, 50);
         } else if(green_result == RESULT_LEFT) {
                 robot_drive(60, 60, 250);
