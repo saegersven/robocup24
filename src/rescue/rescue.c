@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 
 #include "../vision.h"
 #include "../camera.h"
@@ -246,17 +247,6 @@ void rescue_deliver(int is_dead) {
 	display_set_number(NUMBER_RESCUE_OBJECTIVE, RESCUE_OBJECTIVE_CORNER);
 
 	robot_servo(SERVO_CAM, CAM_POS_UP, false, false);
-
-	int SLOW_TURN_SPEED = 35;
-	int FAST_TURN_SPEED = 40;
-
-	int turn_speed = FAST_TURN_SPEED;
-
-	long total_time = 8000;
-	long max_time = 10000;
-
-	float x_corner = 0.0f;
-	float last_x_corner = 0.0f;
 	
 	delay(300);
 	camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
@@ -330,7 +320,6 @@ void rescue_deliver(int is_dead) {
 			camera_stop_capture();
 			return;
 		}
-		last_x_corner = x_corner;
 
 		turn_counter++;
 
