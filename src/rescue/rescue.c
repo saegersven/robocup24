@@ -463,6 +463,7 @@ void rescue_find_exit3() {
 
 	bool already_checked_for_corner = false;
 	long long millis_since_last_realign = milliseconds();
+	long long side_exit_cooldown = 0; // after side exit check, don't check again for some time
 	while (1) {
 		robot_drive(50, 50, 0);
 
@@ -477,7 +478,7 @@ void rescue_find_exit3() {
 		int front_dist = robot_sensor(DIST_FRONT);
 		int side_dist = robot_sensor(DIST_RIGHT_FRONT);
 
-		printf("Front: %d \t Side: %d \t already_checked_for_corner: %d \n", front_dist, side_dist, already_checked_for_corner);
+		printf("Front: %d \t Side: %d \n", front_dist, side_dist, already_checked_for_corner);
 
 		// There are 4 different cases:
 
@@ -487,7 +488,7 @@ void rescue_find_exit3() {
 		// 4) exit side
 
 		// 1. case
-		if (!already_checked_for_corner && front_dist < 350 && robot_distance_avg(DIST_FRONT, 5, 1) < 370) {
+		if (!already_checked_for_corner && front_dist < 350) {
 			printf("Case 1\n");
 			if (rescue_is_corner()) {
 				robot_turn(DTOR(135.0f));
@@ -503,7 +504,7 @@ void rescue_find_exit3() {
 		}
 
 		// 2. case
-		else if (front_dist < 100 && robot_distance_avg(DIST_FRONT, 5, 1) < 110) {
+		else if (front_dist < 100) {
 			printf("Case 2\n");
 			robot_turn(DTOR(90.0f));
 			robot_drive(-100, -100, 200);
@@ -513,7 +514,7 @@ void rescue_find_exit3() {
 		}
 		
 		// 3. case
-		else if (side_dist > 200 && robot_distance_avg(DIST_RIGHT_FRONT, 5, 1) > 180 && front_dist > 1000 && robot_distance_avg(DIST_FRONT, 5, 1) > 980) {
+		else if (side_dist > 200 && front_dist > 1000) {
 			printf("Case 3\n");
 			if (!rescue_is_exit()) {
 				// no exit, so turn 90° and continue
@@ -527,14 +528,14 @@ void rescue_find_exit3() {
 		}
 
 		// 4. case
-		else if (side_dist > 200 && robot_distance_avg(DIST_RIGHT_FRONT, 5, 1) > 180 && front_dist < 1000 && robot_distance_avg(DIST_FRONT, 5, 1) < 1100) {
+		else if (milliseconds() - side_exit_cooldown > 2000 && side_dist > 200 && front_dist < 1000) {
 			printf("Case 4\n");
 			robot_drive(100, 100, 250);
 			robot_turn(DTOR(90.0f));
 			if (!rescue_is_exit()) {
 				// no exit, skip
 				robot_turn(DTOR(-90.0f));
-				while (robot_sensor(DIST_RIGHT_REAR) > 150 && robot_distance_avg(DIST_RIGHT_REAR, 5, 1) > 130) robot_drive(50, 50, 50);
+				side_exit_cooldown = milliseconds();
 			} else return;
 		}
 		
