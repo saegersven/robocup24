@@ -20,3 +20,5 @@ int is_green(uint8_t b, uint8_t g, uint8_t r);
 int is_red(uint8_t b, uint8_t g, uint8_t r);
 
 void image_threshold(S_IMAGE(out), S_IMAGE(in), uint32_t *num_pixels, int(*threshold_fun)(uint8_t, uint8_t, uint8_t));
+
+void image_count_pixels(S_IMAGE(in), int(*threshold_fun)(uint8_t, uint8_t, uint8_t));

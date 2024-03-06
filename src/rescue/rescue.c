@@ -357,19 +357,26 @@ void rescue_deliver(int is_dead) {
 	}
 }
 
-// returns true if there is a corner in current frame (maybe tilt cam slightly upwards)
-// robot is parallel to wall, around 5cm in front of corner
-// checking for green pixels should suffice
-// TODO @saegersven
+// Counts green pixels. TODO: Adjust threshold
 bool rescue_is_corner() {
-	return false;
+	const int NUM_PIXELS_THRESHOLD = 2000;
+
+	camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
+	camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
+	camera_stop_capture();
+
+	return image_count_pixels(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3, is_green) > NUM_PIXELS_THRESHOLD;
 }
 
-// returns true if there is a black stripe instead of a silver one
-// maybe #black_pixels is enough to distinguish black stripe from silver one
-// TODO @saegersven
+// Lets hope num black pixels is enough
 bool rescue_is_exit() {
-	return false;
+	const int NUM_PIXELS_THRESHOLD = 50;
+
+	camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
+	camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
+	camera_stop_capture();
+
+	return image_count_pixels(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3, is_black) > NUM_PIXELS_THRESHOLD;
 }
 
 // returns percentage of black pixels in current frame
@@ -378,16 +385,8 @@ float percentage_black() {
 	camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
 	camera_stop_capture();
 
-	int num_black_pixels = 0;
-
-	for (int i = 0; i < RESCUE_CAPTURE_HEIGHT; i++) {
-        for (int j = 0; j < RESCUE_CAPTURE_WIDTH; j++) {
-        	// TODO @saegersven
-            // increase num_black_pixels if current pixel is black
-        }
-    }
     return 0; // remove later
-    return (float)num_black_pixels / (RESCUE_CAPTURE_WIDTH * RESCUE_CAPTURE_HEIGHT);
+    return (float)image_count_pixels(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3, is_black) / (RESCUE_FRAME_WIDTH * RESCUE_FRAME_HEIGHT);
 }
 
 void rescue_find_exit() {
