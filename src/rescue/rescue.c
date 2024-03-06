@@ -436,30 +436,33 @@ float get_angle_to_right_wall() {
 	return angle;
 }
 
+// returns percentage of black pixels in current frame
+float percentage_black() {	
+	camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
+	camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
+	camera_stop_capture();
+
+	int num_black_pixels = 0;
+
+	for (int i = 0; i < RESCUE_CAPTURE_HEIGHT; i++) {
+        for (int j = 0; j < RESCUE_CAPTURE_WIDTH; j++) {
+        	// TODO @saegersven
+            // increase num_black_pixels if current pixel is black
+        }
+    }
+    return 0; // remove later
+    return (float)num_black_pixels / (RESCUE_CAPTURE_WIDTH * RESCUE_CAPTURE_HEIGHT);
+}
+
 void rescue_find_exit3() {
 	robot_drive(-100, -100, 200);
 	robot_turn(DTOR(-90.0f));
 	robot_drive(50, 50, 0);
-	while (robot_sensor(DIST_FRONT) > 200);
+	while (robot_sensor(DIST_FRONT) > 210 && robot_stop() && robot_distance_avg(DIST_FRONT, 5, 1));
 	robot_turn(DTOR(135.0f));
-	robot_drive(-100, -100, 400);
+	robot_drive(-100, -100, 350);
 	robot_turn(DTOR(-180.0f));
 	robot_drive(-100, -100, 200);
-	rescue_realign_wall();
-	/*
-	millis_since_last_realign = milliseconds();
-
-	robot_drive(50, 50, 0);
-	while (robot_sensor(DIST_RIGHT_FRONT) > 150 || robot_distance_avg(DIST_RIGHT_FRONT, 10, 2) > 170) {
-		if (milliseconds() - millis_since_last_realign > 500) {
-			robot_stop();
-			rescue_realign_wall();
-			millis_since_last_realign = milliseconds();
-			robot_drive(50, 50, 0);
-		}
-	}
-	robot_stop();
-	*/
 
 	bool already_checked_for_corner = false;
 	long long millis_since_last_realign = milliseconds();
@@ -478,17 +481,21 @@ void rescue_find_exit3() {
 		int front_dist = robot_sensor(DIST_FRONT);
 		int side_dist = robot_sensor(DIST_RIGHT_FRONT);
 
-		printf("Front: %d \t Side: %d \n", front_dist, side_dist, already_checked_for_corner);
+		printf("Front: %d \t Side: %d \n", front_dist, side_dist);
 
 		// There are 4 different cases:
 
 		// 1) 35cm in front of wall, check for corner
 		// 2) 10cm in front of wall, turn 90°
-		// 3) exit front
-		// 4) exit side
+		// 3) potential exit front
+		// 4) potential exit side
 
 		// 1. case
-		if (!already_checked_for_corner && front_dist < 350) {
+		if (!already_checked_for_corner &&
+			front_dist < 350
+			&& robot_stop()
+			&& robot_distance_avg(DIST_FRONT, 5, 1) < 370) {
+			
 			printf("Case 1\n");
 			if (rescue_is_corner()) {
 				robot_turn(DTOR(135.0f));
@@ -504,7 +511,10 @@ void rescue_find_exit3() {
 		}
 
 		// 2. case
-		else if (front_dist < 100) {
+		else if (front_dist < 100
+			&& robot_stop()
+			&& robot_distance_avg(DIST_FRONT, 5, 1) < 110) {
+
 			printf("Case 2\n");
 			robot_turn(DTOR(90.0f));
 			robot_drive(-100, -100, 200);
@@ -514,7 +524,12 @@ void rescue_find_exit3() {
 		}
 		
 		// 3. case
-		else if (side_dist > 200 && front_dist > 1000) {
+		else if (side_dist > 200
+			&& front_dist > 1000 
+			&& robot_stop() 
+			&& robot_distance_avg(DIST_RIGHT_FRONT, 5, 1) > 180 
+			&& robot_distance_avg(DIST_FRONT, 5, 1) > 950) {
+
 			printf("Case 3\n");
 			if (!rescue_is_exit()) {
 				// no exit, so turn 90° and continue
@@ -528,7 +543,14 @@ void rescue_find_exit3() {
 		}
 
 		// 4. case
-		else if (milliseconds() - side_exit_cooldown > 2000 && side_dist > 200 && front_dist < 1000) {
+		else if (milliseconds() - side_exit_cooldown > 2000 
+			&& side_dist > 200 
+			&& front_dist < 1000 
+			&& robot_stop() 
+			&& robot_distance_avg(DIST_RIGHT_FRONT, 5, 1) > 180 
+			&& robot_distance_avg(DIST_FRONT, 5, 1) < 1050 
+			&& percentage_black() < 0.05) {
+
 			printf("Case 4\n");
 			robot_drive(100, 100, 250);
 			robot_turn(DTOR(90.0f));

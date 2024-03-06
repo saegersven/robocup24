@@ -87,7 +87,7 @@ int robot_serial_read(uint8_t *data, uint8_t len);
 
 // Movement
 void robot_drive(int8_t left, int8_t right, int32_t duration);
-void robot_stop();
+bool robot_stop();
 void robot_turn(float angle);
 void robot_led(bool state);
 void robot_servo(uint8_t servo_id, uint8_t angle, bool stall, bool nodelay);

@@ -132,8 +132,9 @@ void robot_drive(int8_t left, int8_t right, int32_t duration) {
     }
 }
 
-void robot_stop() {
+bool robot_stop() {
     robot_drive(0, 0, 0);
+    return true;
 }
 
 void robot_turn(float angle) {
