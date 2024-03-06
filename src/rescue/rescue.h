@@ -14,3 +14,4 @@ void rescue_cleanup();
 float get_angle_to_right_wall();
 void rescue_realign_wall();
 bool rescue_is_corner();
+void rescue_reposition();

@@ -16,7 +16,8 @@
 
 static DECLARE_S_IMAGE(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3);
 
-void rescue_find_center() {
+// accurate flag uses rescue_reposition for improved accuracy
+void rescue_find_center(bool accurate) {
 	const int MAX_TIME = 2500;
 
 	for(int i = 0; i < 2; i++) {
@@ -47,6 +48,30 @@ void rescue_find_center() {
 		}
 	}
 	robot_stop();
+
+	if (accurate) rescue_reposition();
+}
+
+void rescue_reposition() {
+	int dist_front = robot_distance_avg(DIST_FRONT, 10, 3);
+	int dist_right_front = robot_distance_avg(DIST_RIGHT_FRONT, 10, 3);
+	int dist_right_rear = robot_distance_avg(DIST_RIGHT_REAR, 10, 3);
+
+	// exit somewhere, turn a bit and try again
+	if ((dist_front > 1000) | (dist_right_front > 1000) | (dist_right_rear > 1000)) {
+		robot_drive(100, -100, 73);
+		rescue_reposition();
+		return;
+	}
+
+	float x = (dist_right_front + dist_right_rear) / 2.0f - 500;
+	float y = dist_front - 500;
+
+	float angle = atan2f(x, y);
+	float mag = sqrtf(x*x + y*y);
+
+	robot_turn(angle);
+	robot_drive(100, 100, mag * 2);
 }
 
 void rescue_collect_victim() {
@@ -170,7 +195,7 @@ int rescue_collect(int find_dead) {
 				if(none_found_counter == 1) {
 					find_dead = 1;
 				}
-				rescue_find_center();
+				rescue_find_center(0);
 				none_found_counter++;
 				turn_counter = 0;
 			}
@@ -325,115 +350,26 @@ void rescue_deliver(int is_dead) {
 		turn_counter++;
 
 		if(turn_counter == 18) {
-			rescue_find_center();
+			rescue_find_center(0);
 
 			turn_counter = 0;
 		}
 	}
 }
 
-void rescue_find_exit() {
-	printf("Looking for exit...\n");
-	// we are in the center
-	int last_min_dist = 1000;
-	while (1) {
-		int dist = robot_sensor(DIST_FRONT);
-		if (dist > last_min_dist) {
-			robot_drive(-50, 50, 50);
-			int dist_first_wall = robot_sensor(DIST_FRONT);
-			printf("Found first wall. Distance: %d \n", dist_first_wall);
-			robot_drive(50, -50, 100);
-			int i = 0;
-			int last_min_dist_temp = last_min_dist; 
-			while (1) {
-				robot_drive(50, -50, 50);
-				dist = robot_distance_avg(DIST_FRONT, 3, 1);
-				if (dist < last_min_dist) last_min_dist_temp = dist;
-				if (dist < last_min_dist) break;
-				++i;
-			}
-			int dist_second_wall = dist;
-			printf("Found second wall. Distance: %d \n", dist_second_wall);
-			delay(3000);
-
-			last_min_dist = last_min_dist_temp * 1.5;
-			for (int j = 0; j < i / 2.0f; ++j) {
-				robot_drive(-50, 50, 50);
-				robot_distance_avg(DIST_FRONT, 3, 1);
-			}
-			// now drive a bit sideways to center in front of exit
-			robot_turn(DTOR(-90.0f));
-			robot_drive(127, 127, 100);
-			robot_turn(DTOR(90.0f));
-			robot_drive(-50, 50, 50);
-			printf("LAST MINDIST: %d \n", last_min_dist);
-			if (last_min_dist < 300) {
-				robot_drive(100, 100, 500);
-				return;
-			}
-			robot_drive(50, 50, 300);
-			robot_drive(-100, 100, 200);
-		} else {
-			robot_drive(50, -50, 50);
-		}
-	}
-}
-
-void rescue_find_exit2() {
-	int dist;
-	do {
-		robot_drive(70, -70, 20);
-		dist = robot_distance_avg(DIST_FRONT, 5, 1);
-		printf("Distance: %d \n", dist);
-	} while (dist < 1000);
-	delay(2000);
-	robot_drive(-50, 50, 150);
-	int last_dist = 2000;
-	int current_dist = robot_distance_avg(DIST_FRONT, 10, 2);
-	while (current_dist < last_dist) {
-		last_dist = current_dist;
-		current_dist = robot_distance_avg(DIST_FRONT, 10, 2);
-		printf("Last dist: %d \t Current dist: %d \t delta: %d \n", last_dist, current_dist, last_dist - current_dist);
-		robot_drive(-50, 50, 80);
-	}
-	printf("Centered to wall\n");
-	delay(5000);
-	
-}
-
 // returns true if there is a corner in current frame (maybe tilt cam slightly upwards)
+// robot is parallel to wall, around 5cm in front of corner
+// checking for green pixels should suffice
 // TODO @saegersven
 bool rescue_is_corner() {
 	return false;
 }
 
 // returns true if there is a black stripe instead of a silver one
+// maybe #black_pixels is enough to distinguish black stripe from silver one
 // TODO @saegersven
 bool rescue_is_exit() {
 	return false;
-}
-
-// realigns robot parallel to wall
-void rescue_realign_wall() {
-	float angle = get_angle_to_right_wall();
-	printf("Turning angle: %f (= %f deg) \n", angle, RTOD(angle));
-
-	// gyro is not reliable for small turns, so only use for large ones
-	if (angle > DTOR(20.0f) || angle < DTOR(-20.0f)) robot_turn(angle);
-	else robot_drive(50, -50, MS_PER_RAD * angle);
-}
-
-float get_angle_to_right_wall() {
-	float angle = 0.0001f;
-	int dist_front = robot_distance_avg(DIST_RIGHT_FRONT, 10, 2);
-	int dist_rear = robot_distance_avg(DIST_RIGHT_REAR, 10, 2);
-
-	// only calculate angle if there actually is a wall to realign to
-	if (dist_front < 400 && dist_rear < 400) {
-		printf("Front: %d   Back (+10mm offset included) %d \n", dist_front, dist_rear + 10);
-		angle = atan((dist_front - (dist_rear + 10)) / 115.0f);		
-	}
-	return angle;
 }
 
 // returns percentage of black pixels in current frame
@@ -454,8 +390,7 @@ float percentage_black() {
     return (float)num_black_pixels / (RESCUE_CAPTURE_WIDTH * RESCUE_CAPTURE_HEIGHT);
 }
 
-void rescue_find_exit3() {
-	/*
+void rescue_find_exit() {
 	robot_drive(-100, -100, 200);
 	robot_turn(DTOR(-90.0f));
 	robot_drive(50, 50, 0);
@@ -464,7 +399,6 @@ void rescue_find_exit3() {
 	robot_drive(-100, -100, 350);
 	robot_turn(DTOR(-180.0f));
 	robot_drive(-100, -100, 200);
-	*/
 
 	bool already_checked_for_corner = false;
 	long long side_exit_cooldown = 0; // after side exit check, don't check again for some time
@@ -476,20 +410,23 @@ void rescue_find_exit3() {
 		const int SPEED = 50;
 		const int TARGET_DIST_SIDE = 60;   // Target distance for the side sensor
 		const float KP = 0.3f;
-		const float KD = 1.0f;
+		const float KD = 2.0f;
 
 		// PD controller for side distance
-		int error_ = TARGET_DIST_SIDE - side_dist;
+		int error = TARGET_DIST_SIDE - side_dist;
 		static int prev_error = 0;
 		int derivative = error - prev_error;
-		prev_error = error_side;
+		prev_error = error;
 		int speed_adjustment = KP * error + KD * derivative;
+
+		int left_speed = SPEED - speed_adjustment;
+		int right_speed = SPEED + speed_adjustment;
 
 		left_speed = (left_speed > 100) ? 100 : ((left_speed < -100) ? -100 : left_speed);
 		right_speed = (right_speed > 100) ? 100 : ((right_speed < -100) ? -100 : right_speed);
 
 		// Only drive with calculates speeds when there is no exit on side
-		if (side_dist < 150) robot_drive(SPEED - speed_adjustment, SPEED + speed_adjustment, 0);
+		if (side_dist < 150) robot_drive(left_speed, right_speed, 0);
 		else robot_drive(50, 50, 0);
 		// --- END OF WALLFOLLOWER LOGIC ---
 
@@ -582,9 +519,11 @@ void rescue() {
 	display_set_image(IMAGE_RESCUE_THRESHOLD, corner_thresh);
 
 	// TEST
-	rescue_find_exit3();
+	rescue_find_exit();
 	return;
 	// TEST END
+
+	robot_drive(100, 100, 400);
 
 	int dist = robot_distance_avg(DIST_RIGHT_FRONT, 10, 2);
 	printf("Dist right front: %d\n", dist);
@@ -625,13 +564,13 @@ void rescue() {
 				break;
 			}
 		} else {
-			rescue_find_center();
+			rescue_find_center(0);
 			robot_drive(-70, -70, 400);
 		}
 		
 		num_victims++;
 	}
-	rescue_find_center();
+	rescue_find_center(0);
 	rescue_find_exit();
 
 	rescue_cleanup();
