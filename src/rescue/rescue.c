@@ -466,16 +466,18 @@ void rescue_find_exit3() {
 	while (1) {
 		robot_drive(50, 50, 0);
 
-		// align every 500ms
-		if (milliseconds() - millis_since_last_realign > 500) {
+		// align every 1000ms
+		if (milliseconds() - millis_since_last_realign > 1000) {
 			robot_stop();
-			rescue_realign_wall();
+			//rescue_realign_wall();
 			millis_since_last_realign = milliseconds();
 			robot_drive(50, 50, 0);
 		}
 
 		int front_dist = robot_sensor(DIST_FRONT);
 		int side_dist = robot_sensor(DIST_RIGHT_FRONT);
+
+		printf("Front: %d \t Side: %d \t already_checked_for_corner: %d \n", front_dist, side_dist, already_checked_for_corner);
 
 		// There are 4 different cases:
 
@@ -485,7 +487,7 @@ void rescue_find_exit3() {
 		// 4) exit side
 
 		// 1. case
-		if (!already_checked_for_corner && front_dist < 350 && robot_distance_avg(DIST_FRONT, 10, 2) < 350) {
+		if (!already_checked_for_corner && front_dist < 350 && robot_distance_avg(DIST_FRONT, 5, 1) < 370) {
 			printf("Case 1\n");
 			if (rescue_is_corner()) {
 				robot_turn(DTOR(135.0f));
@@ -501,7 +503,7 @@ void rescue_find_exit3() {
 		}
 
 		// 2. case
-		else if (front_dist < 100) {
+		else if (front_dist < 100 && robot_distance_avg(DIST_FRONT, 5, 1) < 110) {
 			printf("Case 2\n");
 			robot_turn(DTOR(90.0f));
 			robot_drive(-100, -100, 200);
@@ -511,11 +513,9 @@ void rescue_find_exit3() {
 		}
 		
 		// 3. case
-		else if (side_dist > 200 && front_dist > 1000) {
+		else if (side_dist > 200 && robot_distance_avg(DIST_RIGHT_FRONT, 5, 1) > 180 && front_dist > 1000 && robot_distance_avg(DIST_FRONT, 5, 1) > 980) {
 			printf("Case 3\n");
-			if (rescue_is_exit()) {
-				return;
-			} else {
+			if (!rescue_is_exit()) {
 				// no exit, so turn 90° and continue
 				robot_drive(-100, -100, 350);
 				robot_turn(DTOR(90.0f));
@@ -523,13 +523,19 @@ void rescue_find_exit3() {
 				robot_turn(DTOR(-180.0f));
 				robot_drive(-100, -100, 250);
 				millis_since_last_realign = milliseconds();
-			}
+			} else return;
 		}
 
 		// 4. case
-		else if (side_dist > 200 && front_dist < 1000) {
+		else if (side_dist > 200 && robot_distance_avg(DIST_RIGHT_FRONT, 5, 1) > 180 && front_dist < 1000 && robot_distance_avg(DIST_FRONT, 5, 1) < 1100) {
 			printf("Case 4\n");
-			// TODO
+			robot_drive(100, 100, 250);
+			robot_turn(DTOR(90.0f));
+			if (!rescue_is_exit()) {
+				// no exit, skip
+				robot_turn(DTOR(-90.0f));
+				while (robot_sensor(DIST_RIGHT_REAR) > 150 && robot_distance_avg(DIST_RIGHT_REAR, 5, 1) > 130) robot_drive(50, 50, 50);
+			} else return;
 		}
 		
 	}
