@@ -7,7 +7,7 @@
 
 #include "../vision.h"
 #include "../camera.h"
-//#include "../thresholding.h"
+#include "../thresholding.h"
 #include "../utils.h"
 #include "../robot.h"
 
@@ -357,7 +357,7 @@ void rescue_deliver(int is_dead) {
 	}
 }
 
-// Counts green pixels. TODO: Adjust threshold
+// Counts red/green pixels
 bool rescue_is_corner() {
 	const int NUM_PIXELS_THRESHOLD = 2000;
 
@@ -365,7 +365,12 @@ bool rescue_is_corner() {
 	camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
 	camera_stop_capture();
 
-	return image_count_pixels(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3, is_green) > NUM_PIXELS_THRESHOLD;
+	int green_pixels = image_count_pixels(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3, is_green);
+	int red_pixels = image_count_pixels(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3, is_red);
+
+	printf("Num green pixels: %d \t Red pixels: %d \n", green_pixels, red_pixels);
+
+	return green_pixels > NUM_PIXELS_THRESHOLD; //|| red_pixels > NUM_PIXELS_THRESHOLD;
 }
 
 // Lets hope num black pixels is enough
@@ -384,8 +389,7 @@ float percentage_black() {
 	camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
 	camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
 	camera_stop_capture();
-
-    return 0; // remove later
+	
     return (float)image_count_pixels(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3, is_black) / (RESCUE_FRAME_WIDTH * RESCUE_FRAME_HEIGHT);
 }
 
