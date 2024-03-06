@@ -36,7 +36,7 @@ void image_threshold(S_IMAGE(out), S_IMAGE(in), uint32_t *num_pixels, int(*thres
     }
 }
 
-void image_count_pixels(S_IMAGE(in), int(*threshold_fun)(uint8_t, uint8_t, uint8_t)) {
+uint32_t image_count_pixels(S_IMAGE(in), int(*threshold_fun)(uint8_t, uint8_t, uint8_t)) {
     uint32_t num_pixels = 0;
 
     for(int i = 0; i < in_h; i++) {

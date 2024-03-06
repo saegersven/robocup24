@@ -359,7 +359,10 @@ void rescue_deliver(int is_dead) {
 
 // Counts red/green pixels
 bool rescue_is_corner() {
-	const int NUM_PIXELS_THRESHOLD = 2000;
+	const int NUM_PIXELS_THRESHOLD = 100;
+	printf("Tilting cam\n");
+	robot_servo(SERVO_CAM, 140, false, false);
+	delay(300);
 
 	camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
 	camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
@@ -370,7 +373,7 @@ bool rescue_is_corner() {
 
 	printf("Num green pixels: %d \t Red pixels: %d \n", green_pixels, red_pixels);
 
-	return green_pixels > NUM_PIXELS_THRESHOLD; //|| red_pixels > NUM_PIXELS_THRESHOLD;
+	return green_pixels > NUM_PIXELS_THRESHOLD || red_pixels > NUM_PIXELS_THRESHOLD;
 }
 
 // Lets hope num black pixels is enough
@@ -385,12 +388,12 @@ bool rescue_is_exit() {
 }
 
 // returns percentage of black pixels in current frame
-float percentage_black() {	
+uint32_t percentage_black() {	
 	camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
 	camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
 	camera_stop_capture();
-	
-    return (float)image_count_pixels(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3, is_black) / (RESCUE_FRAME_WIDTH * RESCUE_FRAME_HEIGHT);
+
+    return (uint32_t)image_count_pixels(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3, is_black) / (RESCUE_FRAME_WIDTH * RESCUE_FRAME_HEIGHT);
 }
 
 void rescue_find_exit() {
@@ -432,6 +435,8 @@ void rescue_find_exit() {
 		if (side_dist < 150) robot_drive(left_speed, right_speed, 0);
 		else robot_drive(50, 50, 0);
 		// --- END OF WALLFOLLOWER LOGIC ---
+
+		printf("already_checked_for_corner: %d \n", already_checked_for_corner);
 
 
 
@@ -522,6 +527,10 @@ void rescue() {
 	display_set_image(IMAGE_RESCUE_THRESHOLD, corner_thresh);
 
 	// TEST
+	delay(500);
+	robot_servo(SERVO_CAM, 80, false, false);
+	delay(1000);
+	exit(0);
 	rescue_find_exit();
 	return;
 	// TEST END

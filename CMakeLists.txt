@@ -22,6 +22,7 @@ include_directories(${WIRINGPI_INCLUDE_DIRS})
 include_directories(${CMAKE_SOURCE_DIR}/libs)
 
 add_executable(robocup
+    src/thresholding.c
     src/main.c
     src/robot.c
     src/utils.c
@@ -29,8 +30,7 @@ add_executable(robocup
     src/camera.c
     src/line/line.c
     src/rescue/rescue.c
-    src/display/display.c
-    src/thresholding.c)
+    src/display/display.c)
 
 target_link_libraries(robocup v4l2)
 target_link_libraries(robocup Threads::Threads)
