@@ -165,14 +165,14 @@ void turn(int16_t angle_mrad) {
 
 void servo(uint8_t id, uint8_t angle, bool stall, bool nodelay) {
   if (angle == 0) {
-    // Toggle attachmeant of servo
+    // Toggle attachment of servo
     if (servos[id].attached() && !stall) servos[id].detach();
     else if (stall) servos[id].attach(servo_pins[id]);
     return;
   }
 
   if (!servos[id].attached()) servos[id].attach(servo_pins[id]);
-
+  delay(10);
   int prev_angle = servos[id].read();
   servos[id].write(angle);
 

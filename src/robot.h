@@ -61,6 +61,7 @@
 #define CAM_POS_DOWN2 90
 #define CAM_POS_DOWN3 110
 #define CAM_POS_DOWN 135
+
 #define ARM_POS_DOWN 137
 #define ARM_POS_HALF_DOWN 102
 
