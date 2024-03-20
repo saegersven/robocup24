@@ -317,7 +317,7 @@ void rescue_deliver(int is_dead) {
 					break;
 				}
 
-				robot_turn(x * DTOR(65.0f) / (i + 1) + DTOR(1.0f));
+				robot_turn(x * DTOR(65.0f) + DTOR(1.0f));
 				robot_drive(45, 45, 700);
 				delay(80);
 			}
@@ -378,13 +378,29 @@ bool rescue_is_corner() {
 
 // Lets hope num black pixels is enough
 bool rescue_is_exit() {
-	const int NUM_PIXELS_THRESHOLD = 50;
+	const int NUM_PIXELS_THRESHOLD = 35000;
 
 	camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
-	camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
+	
+	int max_num_pixels = 0;
+
+	robot_drive(60, 60, 0);
+	long long start_time = milliseconds();
+	while(milliseconds() - start_time < 600) {
+		camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
+
+
+
+		int num_pixels = image_count_pixels(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3, is_black);
+		if(num_pixels > max_num_pixels) max_num_pixels = num_pixels;
+	}
+	robot_stop();
 	camera_stop_capture();
 
-	return image_count_pixels(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3, is_black) > NUM_PIXELS_THRESHOLD;
+	printf("Max num pixels: %d\n", max_num_pixels);
+	delay(1000);
+
+	return max_num_pixels > NUM_PIXELS_THRESHOLD;
 }
 
 // returns number of black pixels in current frame
@@ -446,8 +462,6 @@ void rescue_find_exit() {
 		// 3) potential exit front
 		// 4) potential exit side
 
-		printf("already_checked_for_corner: %d \n", already_checked_for_corner);
-
 		// 1. case
 		if (!already_checked_for_corner &&
 			front_dist < 340
@@ -471,9 +485,9 @@ void rescue_find_exit() {
 		}
 
 		// 2. case
-		else if (front_dist < 120
+		else if (front_dist < 90
 			&& robot_stop()
-			&& robot_distance_avg(DIST_FRONT, 5, 1) < 130) {
+			&& robot_distance_avg(DIST_FRONT, 5, 1) < 100) {
 
 			printf("Case 2\n");
 			robot_turn(DTOR(90.0f));
@@ -486,14 +500,14 @@ void rescue_find_exit() {
 		// 3. case
 		else if (side_dist > 200
 			&& robot_stop() 
+			&& robot_distance_avg(DIST_FRONT, 5, 1) > 1000
 			&& robot_distance_avg(DIST_RIGHT_FRONT, 5, 1) > 180 
 			&& pixels_black() > 2000) {
 
 			printf("Case 3\n");
 			robot_drive(-100, -100, 50);
-			printf("Found front exit. Returning...\n");
-			return;
-			/*
+			printf("Potential front exit\n");
+
 			// TODO: check if this is really exit or just silver
 			if (!rescue_is_exit()) {
 				// no exit, so turn 90° and continue
@@ -503,11 +517,10 @@ void rescue_find_exit() {
 				robot_turn(DTOR(-180.0f));
 				robot_drive(-100, -100, 250);
 			} else return;
-			*/
 		}
 
 		// 4. case
-		else if (milliseconds() - side_exit_cooldown > 2000 
+		else if (milliseconds() - side_exit_cooldown > 3000 
 			&& side_dist > 200 
 			&& robot_stop() 
 			&& robot_distance_avg(DIST_RIGHT_FRONT, 5, 1) > 180 
@@ -516,18 +529,15 @@ void rescue_find_exit() {
 			printf("Case 4\n");
 			robot_drive(100, 100, 200);
 			robot_turn(DTOR(90.0f));
-			printf("Found side exit. Returning...\n");
-			return;
-			/*
-			// TODO: check if this is really exit or just silver
+			printf("Potential side exit\n");
+
 			if (!rescue_is_exit()) {
 				// no exit, skip
+				robot_drive(-80, -80, 600);
 				robot_turn(DTOR(-90.0f));
 				side_exit_cooldown = milliseconds();
 			} else return;
-			*/
-		}
-		
+		}		
 	}
 
 }
