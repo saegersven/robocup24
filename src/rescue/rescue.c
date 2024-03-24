@@ -13,6 +13,7 @@
 
 #include "victims.h"
 #include "corner.h"
+#include "silver.h"
 
 static DECLARE_S_IMAGE(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3);
 
@@ -376,29 +377,47 @@ bool rescue_is_corner() {
 	return green_pixels > NUM_PIXELS_THRESHOLD || red_pixels > NUM_PIXELS_THRESHOLD;
 }
 
+int is_black_exit(uint8_t b, uint8_t g, uint8_t r) {
+	return (uint16_t)b + (uint16_t)g + (uint16_t)r < 120;
+}
+
+int is_gray(uint8_t b, uint8_t g, uint8_t r) {
+	return (uint16_t)b + (uint16_t)g + (uint16_t)r < 250;
+}
+
+const int CAPTURE_WIDTH = 320;
+const int CAPTURE_HEIGHT = 192;
+const int FRAME_WIDTH = 80;
+const int FRAME_HEIGHT = 48;
+
 // Lets hope num black pixels is enough
 bool rescue_is_exit() {
-	const int NUM_PIXELS_THRESHOLD = 35000;
-
-	camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
+	const int NUM_PIXELS_THRESHOLD = 500;
 	
 	int max_num_pixels = 0;
 
 	robot_drive(60, 60, 0);
 	long long start_time = milliseconds();
-	while(milliseconds() - start_time < 600) {
-		camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
 
+	int sum_black_pixels = 0;
+	const int N = 5;
 
+	for(int i = 0; i < N; i++) {
+		camera_grab_frame(frame, FRAME_WIDTH, FRAME_HEIGHT);
 
-		int num_pixels = image_count_pixels(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3, is_black);
-		if(num_pixels > max_num_pixels) max_num_pixels = num_pixels;
+		int num_black_pixels = image_count_pixels_roi(frame, FRAME_WIDTH, FRAME_HEIGHT, 3, is_black_exit, 20, 60, 5, 43);
+		sum_black_pixels += num_black_pixels;
+		printf("Num black pixels: %d\n", num_black_pixels);
+
+		if(num_black_pixels > max_num_pixels) max_num_pixels = num_black_pixels;
+
+		robot_drive(60, 60, 80);
 	}
-	robot_stop();
-	camera_stop_capture();
 
-	printf("Max num pixels: %d\n", max_num_pixels);
-	delay(1000);
+	int avg_black_pixels = sum_black_pixels / N;
+
+	printf("avg_black_pixels: %d\n", avg_black_pixels);
+	printf("max_num_pixels: %d\n", max_num_pixels);
 
 	return max_num_pixels > NUM_PIXELS_THRESHOLD;
 }
@@ -416,6 +435,7 @@ int pixels_black() {
 }
 
 void rescue_find_exit() {
+	/*
 	robot_drive(-100, -100, 200);
 	robot_turn(-R90);
 	robot_drive(50, 50, 0);
@@ -424,9 +444,18 @@ void rescue_find_exit() {
 	robot_drive(-100, -100, 350);
 	robot_turn(-R180);
 	robot_drive(-100, -100, 200);
-
+	*/
 	bool already_checked_for_corner = false;
 	long long side_exit_cooldown = 0;
+
+	long long last_time = milliseconds();
+	int prev_error = 0;
+
+	robot_servo(SERVO_CAM, CAM_POS_DOWN - 5, true, false);
+
+	rescue_silver_init();
+
+	camera_start_capture(CAPTURE_WIDTH, CAPTURE_HEIGHT);
 
 	while(1) {
 		int front_dist = robot_sensor(DIST_FRONT);
@@ -434,19 +463,33 @@ void rescue_find_exit() {
 		int side_rear_dist = robot_sensor(DIST_RIGHT_REAR);
 
 		// --- START OF WALLFOLLOWER LOGIC ---
-		if(side_front_dist < 150 && side_rear_dist < 150) {
+		if(side_front_dist < 200 && side_rear_dist < 200) {
 			const int SPEED = 50;
-			const int TARGET_DIST_SIDE = 60;   // Target distance for the side sensor
-			const float L = 15.0f;
-			const float KP = 0.3f;
-			const float KD = 10.0f;
+			const int TARGET_DIST_SIDE = 50;   // Target distance for the side sensor
+			
+			const float L = 113.0f;
+			const float delta_D = 8.0f;
+
+			const float KP = 0.4f;
+			const float KD = 0.02f;
+			const float KP_angle = 80.0f;
+
+			float angle = atanf((float)(side_rear_dist + delta_D - side_front_dist) / L);
 
 			// PD controller for side distance
-			int error = TARGET_DIST_SIDE - (side_front_dist + side_rear_dist) / 2;
-			
-			float angle = atanf((float)(side_front_dist - side_rear_dist) / 15.0f);
+			int side_dist_measurement = TARGET_DIST_SIDE - (side_front_dist + side_rear_dist + delta_D) / 2;
+			float error = side_dist_measurement * cosf(angle);
 
-			int speed_adjustment = KP * error + KD * angle;
+			printf("Error: %.0f, Angle: %.2f\n", error, angle);
+
+			long long time = milliseconds();
+			float dt = (time - last_time) / 1000.0f;
+			if(prev_error == 0) prev_error = error;
+			float derivative = (error - prev_error) / dt;
+			last_time = time;
+			prev_error = error;
+
+			int speed_adjustment = clamp(KP * error + KD * derivative + KP_angle * angle, -50, 50);
 
 			int left_speed = SPEED - speed_adjustment;
 			int right_speed = SPEED + speed_adjustment;
@@ -457,48 +500,28 @@ void rescue_find_exit() {
 			robot_drive(50, 50, 0);
 		}
 		// --- END OF WALLFOLLOWER LOGIC ---
-	}
-}
 
-void rescue_find_exit_old() {
-	robot_drive(-100, -100, 200);
-	robot_turn(DTOR(-90.0f));
-	robot_drive(50, 50, 0);
-	while (robot_sensor(DIST_FRONT) > 200);
-	robot_turn(DTOR(135.0f));
-	robot_drive(-100, -100, 350);
-	robot_turn(DTOR(-180.0f));
-	robot_drive(-100, -100, 200);
+		// Check for exit with camera
+		camera_grab_frame(frame, FRAME_WIDTH, FRAME_HEIGHT);
 
-	bool already_checked_for_corner = false;
-	long long side_exit_cooldown = 0; // after side exit check, don't check again for some time
-	while (1) {
-		int front_dist = robot_sensor(DIST_FRONT);
-		int side_dist = robot_sensor(DIST_RIGHT_FRONT);
+		int num_black_pixels = image_count_pixels(frame, FRAME_WIDTH, FRAME_HEIGHT, 3, is_gray);
+		if(num_black_pixels > 400) {
+			printf("Potential front exit\n");
 
-		// --- START OF WALLFOLLOWER LOGIC ---
-		const int SPEED = 50;
-		const int TARGET_DIST_SIDE = 60;   // Target distance for the side sensor
-		const float KP = 0.3f;
-		const float KD = 2.0f;
-
-		// PD controller for side distance
-		int error = TARGET_DIST_SIDE - side_dist;
-		static int prev_error = 0;
-		int derivative = error - prev_error;
-		prev_error = error;
-		int speed_adjustment = KP * error + KD * derivative;
-
-		int left_speed = SPEED - speed_adjustment;
-		int right_speed = SPEED + speed_adjustment;
-
-		left_speed = (left_speed > 100) ? 100 : ((left_speed < -100) ? -100 : left_speed);
-		right_speed = (right_speed > 100) ? 100 : ((right_speed < -100) ? -100 : right_speed);
-
-		// Only drive with calculates speeds when there is no exit on side
-		if (side_dist < 150) robot_drive(left_speed, right_speed, 0);
-		else robot_drive(50, 50, 0);
-		// --- END OF WALLFOLLOWER LOGIC ---
+			robot_stop();
+			if(rescue_silver_detect_flipped(frame, 3) > 0.5f) {
+				robot_drive(-60, -60, 150);
+				if (!rescue_is_exit()) {
+					// no exit, skip
+					robot_drive(-80, -80, 600);
+					robot_turn(DTOR(90.0f));
+					robot_drive(-100, -100, 300);
+					robot_turn(DTOR(-180.0f));
+					robot_drive(-50, -50, 500);
+					side_exit_cooldown = milliseconds();
+				} else return;
+			}
+		}
 
 		// There are 4 different cases:
 
@@ -514,6 +537,7 @@ void rescue_find_exit_old() {
 			&& robot_distance_avg(DIST_FRONT, 5, 1) < 360) {
 
 			printf("Case 1\n");
+			camera_stop_capture();
 			if (rescue_is_corner()) {
 				robot_turn(DTOR(135.0f));
 				robot_drive(-100, -100, 300);
@@ -527,6 +551,9 @@ void rescue_find_exit_old() {
 			} else {
 				already_checked_for_corner = true;
 			}
+
+			robot_servo(SERVO_CAM, CAM_POS_DOWN - 5, true, false);
+			camera_start_capture(FRAME_WIDTH, FRAME_HEIGHT);
 		}
 
 		// 2. case
@@ -541,40 +568,16 @@ void rescue_find_exit_old() {
 			robot_drive(-50, -50, 500);
 			already_checked_for_corner = false;
 		}
-		
-		// 3. case
-		else if (side_dist > 200
-			&& robot_stop() 
-			&& robot_distance_avg(DIST_FRONT, 5, 1) > 1000
-			&& robot_distance_avg(DIST_RIGHT_FRONT, 5, 1) > 180 
-			&& pixels_black() > 2000) {
-
-			printf("Case 3\n");
-			robot_drive(-100, -100, 50);
-			printf("Potential front exit\n");
-
-			// TODO: check if this is really exit or just silver
-			if (!rescue_is_exit()) {
-				// no exit, so turn 90° and continue
-				robot_drive(-100, -100, 350);
-				robot_turn(DTOR(90.0f));
-				robot_drive(-100, -100, 250);
-				robot_turn(DTOR(-180.0f));
-				robot_drive(-100, -100, 250);
-			} else return;
-		}
 
 		// 4. case
-		else if (milliseconds() - side_exit_cooldown > 3000 
-			&& side_dist > 200 
+		if (milliseconds() - side_exit_cooldown > 3000 
+			&& side_front_dist > 200 
 			&& robot_stop() 
-			&& robot_distance_avg(DIST_RIGHT_FRONT, 5, 1) > 180 
-			&& pixels_black() < 2000) {
+			&& robot_distance_avg(DIST_RIGHT_FRONT, 5, 1) > 180) {
 
-			printf("Case 4\n");
-			robot_drive(100, 100, 200);
-			robot_turn(DTOR(90.0f));
 			printf("Potential side exit\n");
+			robot_drive(100, 100, 180);
+			robot_turn(DTOR(90.0f));
 
 			if (!rescue_is_exit()) {
 				// no exit, skip
@@ -582,9 +585,8 @@ void rescue_find_exit_old() {
 				robot_turn(DTOR(-90.0f));
 				side_exit_cooldown = milliseconds();
 			} else return;
-		}		
+		}
 	}
-
 }
 
 void rescue() {

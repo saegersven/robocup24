@@ -5,6 +5,9 @@
 #define MAX_IMAGE_WIDTH 320
 #define MAX_IMAGE_HEIGHT 320
 
+#define LINE_FRAME_WIDTH 80
+#define LINE_FRAME_HEIGHT 48
+
 #define S_IMAGE(identifier) uint8_t *identifier##_d, uint32_t identifier##_w, uint32_t identifier##_h, uint32_t identifier##_c
 #define DECLARE_S_IMAGE(identifier, width, height, channels) uint8_t identifier[width * height * channels]
 

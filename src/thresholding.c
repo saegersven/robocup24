@@ -51,3 +51,19 @@ uint32_t image_count_pixels(S_IMAGE(in), int(*threshold_fun)(uint8_t, uint8_t, u
 
     return num_pixels;
 }
+
+uint32_t image_count_pixels_roi(S_IMAGE(in), int(*threshold_fun)(uint8_t, uint8_t, uint8_t), int x_start, int x_end, int y_start, int y_end) {
+    uint32_t num_pixels = 0;
+
+    for(int i = y_start; i < y_end; i++) {
+        for(int j = x_start; j < x_end; j++) {
+            int idx = i * in_w + j;
+            
+            if(threshold_fun(in_d[3*idx], in_d[3*idx+1], in_d[3*idx+2])) {
+                ++num_pixels;
+            }
+        }
+    }
+
+    return num_pixels;
+}
