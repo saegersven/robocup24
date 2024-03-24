@@ -417,6 +417,51 @@ int pixels_black() {
 
 void rescue_find_exit() {
 	robot_drive(-100, -100, 200);
+	robot_turn(-R90);
+	robot_drive(50, 50, 0);
+	while(robot_sensor(DIST_FRONT) > 200);
+	robot_turn(DTOR(135.0f));
+	robot_drive(-100, -100, 350);
+	robot_turn(-R180);
+	robot_drive(-100, -100, 200);
+
+	bool already_checked_for_corner = false;
+	long long side_exit_cooldown = 0;
+
+	while(1) {
+		int front_dist = robot_sensor(DIST_FRONT);
+		int side_front_dist = robot_sensor(DIST_RIGHT_FRONT);
+		int side_rear_dist = robot_sensor(DIST_RIGHT_REAR);
+
+		// --- START OF WALLFOLLOWER LOGIC ---
+		if(side_front_dist < 150 && side_rear_dist < 150) {
+			const int SPEED = 50;
+			const int TARGET_DIST_SIDE = 60;   // Target distance for the side sensor
+			const float L = 15.0f;
+			const float KP = 0.3f;
+			const float KD = 10.0f;
+
+			// PD controller for side distance
+			int error = TARGET_DIST_SIDE - (side_front_dist + side_rear_dist) / 2;
+			
+			float angle = atanf((float)(side_front_dist - side_rear_dist) / 15.0f);
+
+			int speed_adjustment = KP * error + KD * angle;
+
+			int left_speed = SPEED - speed_adjustment;
+			int right_speed = SPEED + speed_adjustment;
+
+			// Only drive with calculates speeds when there is a wall
+			robot_drive(left_speed, right_speed, 0);
+		} else {
+			robot_drive(50, 50, 0);
+		}
+		// --- END OF WALLFOLLOWER LOGIC ---
+	}
+}
+
+void rescue_find_exit_old() {
+	robot_drive(-100, -100, 200);
 	robot_turn(DTOR(-90.0f));
 	robot_drive(50, 50, 0);
 	while (robot_sensor(DIST_FRONT) > 200);
