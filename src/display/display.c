@@ -112,7 +112,7 @@ void draw_mode_rescue() {
     switch((int)numbers[NUMBER_RESCUE_OBJECTIVE]) {
         case RESCUE_OBJECTIVE_CORNER:
             sprintf(buf, "OBJ  CORNER");
-            draw_image(images[IMAGE_RESCUE_THRESHOLD], RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 1, 20, 60, RESCUE_FRAME_DRAW_WIDTH, RESCUE_FRAME_DRAW_HEIGHT, 0, 1.0f, 1.0f, 1.0f);
+            draw_image(images[IMAGE_RESCUE_FRAME], RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3, 20, 60, RESCUE_FRAME_DRAW_WIDTH, RESCUE_FRAME_DRAW_HEIGHT, 0, 1.0f, 1.0f, 1.0f);
             break;
         case RESCUE_OBJECTIVE_VICTIM:
             sprintf(buf, "OBJ  VICTIM");

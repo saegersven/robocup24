@@ -593,13 +593,8 @@ void rescue() {
 	display_set_mode(MODE_RESCUE);
 	display_set_image(IMAGE_RESCUE_FRAME, frame);
 	display_set_image(IMAGE_RESCUE_THRESHOLD, corner_thresh);
-
-	// TEST
-	rescue_find_exit();
-	return;
-	// TEST END
-
-	robot_drive(100, 100, 400);
+	
+	robot_drive(100, 100, 800);
 
 	int dist = robot_distance_avg(DIST_RIGHT_FRONT, 10, 2);
 	printf("Dist right front: %d\n", dist);
@@ -614,8 +609,6 @@ void rescue() {
 	}
 
 	//camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
-	
-	robot_drive(100, 100, 800);
 
 
 	robot_servo(SERVO_CAM, CAM_POS_UP, false, false);
@@ -629,13 +622,15 @@ void rescue() {
 
 	int num_victims = 0;
 
+	rescue_deliver(true);
+
 	while(num_victims < 8) {
 		display_set_number(NUMBER_RESCUE_NUM_VICTIMS, num_victims);
 
 		int ret = rescue_collect(num_victims >= 2);
 
 		if(ret) {
-			rescue_deliver(ret == 2);
+			rescue_deliver(true);
 			if(ret == 2) {
 				break;
 			}

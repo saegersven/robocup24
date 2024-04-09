@@ -16,7 +16,7 @@ resolution = (80, 48)
 
 out_dirs = ['/home/pi/capture/silver/', '/home/pi/capture/silver/', '/home/pi/capture/victim/', '/home/pi/capture/corner/']
 
-if num == 3 and num == 4:
+if num == 3 or num == 4:
     resolution = (320, 240)
 
 cam = PiCamera()

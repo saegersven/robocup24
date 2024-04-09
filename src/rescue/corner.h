@@ -86,20 +86,22 @@ int corner_detect(uint8_t *input, float *x, int green) {
     for(int i = 0; i < CORNER_MODEL_OUTPUT_HEIGHT * CORNER_MODEL_OUTPUT_WIDTH * CORNER_MODEL_OUTPUT_CHANNELS; i++) {
         output_blurred_byte[i] = output_blurred[i];
     }
-    write_image("corner_nn_output.png", output_blurred_byte, CORNER_MODEL_OUTPUT_WIDTH, CORNER_MODEL_OUTPUT_HEIGHT, CORNER_MODEL_OUTPUT_CHANNELS);
-
     int num_pixels = 0;
     for(int i = 4; i < CORNER_MODEL_OUTPUT_HEIGHT; i++) {
         for(int j = 0; j < CORNER_MODEL_OUTPUT_WIDTH; j++) {
             int idx = CORNER_MODEL_OUTPUT_CHANNELS * (i * CORNER_MODEL_OUTPUT_WIDTH + j) + green;
-            if(output_blurred[idx] > 0.25f) {
+            if(output_blurred[idx] > 0.25f || (!green && output_blurred[idx] > 0.1f)) {
                 num_pixels++;
                 *x += j;
             }
         }
     }
     printf("Corner Num pixels: %d\n", num_pixels);
-    if(num_pixels > 7) {
+    if(num_pixels > 7) {    
+        char filename[64];
+        sprintf(filename, "/home/pi/capture/corner/%lld.png", milliseconds());
+        write_image(filename, input, CORNER_INPUT_WIDTH, CORNER_INPUT_HEIGHT, 3);
+
         *x /= num_pixels;
         *x /= CORNER_MODEL_OUTPUT_WIDTH;
         *x -= 0.5f;
