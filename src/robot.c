@@ -16,7 +16,7 @@
 
 #include "utils.h"
 
-//#define ENABLE_LATENCY_TIMER
+//#define ENABLE_LATENCY_TIMER 
 
 static int serial_fd;
 static speed_t baud_rate = B115200;
