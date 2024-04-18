@@ -282,6 +282,8 @@ void rescue_deliver(int is_dead) {
 	delay(200);
 	camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
 
+	long long start_time = milliseconds();
+
 	int turn_counter = 0;
 	while(1) {
 		robot_turn(DTOR(20.0f));
@@ -294,7 +296,7 @@ void rescue_deliver(int is_dead) {
 		delay(50);
 
 		float x = 0.0f;
-		if(corner_detect(frame, &x, !is_dead)) {
+		if(corner_detect(frame, &x, !is_dead, milliseconds() - start_time)) {
 			printf("Corner pos: %f\n", x);
 
 			robot_stop();
@@ -308,7 +310,7 @@ void rescue_deliver(int is_dead) {
 				camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
 				delay(50);
 
-				if(!corner_detect(frame, &x, !is_dead)) {
+				if(!corner_detect(frame, &x, !is_dead, milliseconds() - start_time)) {
 					if(i < 3) {
 						printf("Lost corner");
 						robot_turn(-DTOR(20.0f));
@@ -341,8 +343,10 @@ void rescue_deliver(int is_dead) {
 			rescue_drop_victim();
 
 			// Go back to center
-			robot_drive(-100, -100, 600);
-			robot_turn(DTOR(45.0f)); // face away from corner to avoid detecting rescued victims (just to be safe)
+			if (!is_dead) {
+				robot_drive(-100, -100, 600);
+				robot_turn(DTOR(45.0f)); // face away from corner to avoid detecting rescued victims (just to be safe)
+			}
 
 			camera_stop_capture();
 			return;
@@ -435,7 +439,7 @@ int pixels_black() {
 }
 
 void rescue_find_exit() {
-	/*
+	printf("I am in find exit now. Pls pray for me.\n");
 	robot_drive(-100, -100, 200);
 	robot_turn(-R90);
 	robot_drive(50, 50, 0);
@@ -444,7 +448,7 @@ void rescue_find_exit() {
 	robot_drive(-100, -100, 350);
 	robot_turn(-R180);
 	robot_drive(-100, -100, 200);
-	*/
+
 	bool already_checked_for_corner = false;
 	long long side_exit_cooldown = 0;
 
@@ -601,11 +605,11 @@ void rescue() {
 	if(dist < 400) {
 		robot_turn(DTOR(130.0f));
 		robot_drive(-100, -100, 800);
-		robot_turn(DTOR(100.0f));
+		robot_turn(DTOR(85.0f));
 	} else {
 		robot_turn(DTOR(-130.0f));
 		robot_drive(-100, -100, 800);
-		robot_turn(DTOR(-100.0f));
+		robot_turn(DTOR(120.0f));
 	}
 
 	//camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
@@ -622,15 +626,13 @@ void rescue() {
 
 	int num_victims = 0;
 
-	rescue_deliver(true);
-
-	while(num_victims < 8) {
+	while(num_victims < 3) {
 		display_set_number(NUMBER_RESCUE_NUM_VICTIMS, num_victims);
 
 		int ret = rescue_collect(num_victims >= 2);
 
 		if(ret) {
-			rescue_deliver(true);
+			rescue_deliver(ret == 2);
 			if(ret == 2) {
 				break;
 			}
@@ -641,7 +643,8 @@ void rescue() {
 		
 		num_victims++;
 	}
-	rescue_find_center(0);
+	robot_drive(80, 80, 600);
+	robot_drive(40, 40, 1500);
 	rescue_find_exit();
 
 	rescue_cleanup();
