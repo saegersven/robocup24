@@ -48,6 +48,7 @@ void rescue_find_center(bool accurate) {
 			}
 		}
 	}
+	robot_drive(-80, -80, 300);
 	robot_stop();
 
 	if (accurate) rescue_reposition();
@@ -362,19 +363,22 @@ void rescue_deliver(int is_dead) {
 	}
 }
 
+const int CAPTURE_WIDTH = 320;
+const int CAPTURE_HEIGHT = 192;
+const int FRAME_WIDTH = 80;
+const int FRAME_HEIGHT = 48;
+
 // Counts red/green pixels
 bool rescue_is_corner() {
 	robot_servo(SERVO_CAM, 0.4 * (CAM_POS_UP + CAM_POS_DOWN), true, false);
 	delay(300);
 
-	const int NUM_PIXELS_THRESHOLD = 420;
+	const int NUM_PIXELS_THRESHOLD = 360;
 
-	camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
-	camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
-	camera_stop_capture();
+	camera_grab_frame(frame, FRAME_WIDTH, FRAME_HEIGHT);
 
-	int green_pixels = image_count_pixels(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3, is_green);
-	int red_pixels = image_count_pixels(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3, is_red);
+	int green_pixels = image_count_pixels(frame, FRAME_WIDTH, FRAME_HEIGHT, 3, is_green);
+	int red_pixels = image_count_pixels(frame, FRAME_WIDTH, FRAME_HEIGHT, 3, is_red);
 
 	printf("Num green pixels: %d \t Red pixels: %d \n", green_pixels, red_pixels);
 
@@ -389,14 +393,10 @@ int is_gray(uint8_t b, uint8_t g, uint8_t r) {
 	return (uint16_t)b + (uint16_t)g + (uint16_t)r < 250;
 }
 
-const int CAPTURE_WIDTH = 320;
-const int CAPTURE_HEIGHT = 192;
-const int FRAME_WIDTH = 80;
-const int FRAME_HEIGHT = 48;
-
 // Lets hope num black pixels is enough
 bool rescue_is_exit() {
-	const int NUM_PIXELS_THRESHOLD = 500;
+	//return true;
+	const int NUM_PIXELS_THRESHOLD = 340;
 	
 	int max_num_pixels = 0;
 
@@ -441,13 +441,24 @@ int pixels_black() {
 void rescue_find_exit() {
 	printf("I am in find exit now. Pls pray for me.\n");
 	robot_drive(-100, -100, 200);
+	delay(30);
 	robot_turn(-R90);
+	delay(30);
 	robot_drive(50, 50, 0);
 	while(robot_sensor(DIST_FRONT) > 200);
+	robot_stop();
+	delay(30);
 	robot_turn(DTOR(135.0f));
-	robot_drive(-100, -100, 350);
-	robot_turn(-R180);
-	robot_drive(-100, -100, 200);
+	delay(30);
+	robot_drive(-100, -100, 150);
+	delay(30);
+	robot_turn(-R90);
+	delay(30);
+	robot_drive(50, 50, 700);
+	robot_drive(-80, -80, 250);
+	delay(30);
+	robot_turn(-R90);
+	delay(30);
 
 	bool already_checked_for_corner = false;
 	long long side_exit_cooldown = 0;
@@ -541,23 +552,34 @@ void rescue_find_exit() {
 			&& robot_distance_avg(DIST_FRONT, 5, 1) < 360) {
 
 			printf("Case 1\n");
-			camera_stop_capture();
 			if (rescue_is_corner()) {
 				robot_turn(DTOR(135.0f));
+				delay(30);
 				robot_drive(-100, -100, 300);
-				robot_turn(DTOR(-180.0f));
+				delay(30);
+				robot_turn(-R90);
+				delay(30);
+				robot_drive(40, 40, 1500);
+				delay(30);
+				robot_drive(-80, -80, 250);
+				delay(30);
+				robot_turn(-R90);
+				delay(30);
 				robot_drive(50, 50, 0);
 				while (robot_sensor(DIST_FRONT) > 200);
+				delay(30);
 				robot_turn(DTOR(135.0f));
+				delay(30);
 				robot_drive(-100, -100, 400);
+				delay(30);
 				robot_turn(DTOR(-180.0f));
-				robot_drive(-100, -100, 200);
+				delay(30);
+				robot_drive(-100, -100, 300);
 			} else {
 				already_checked_for_corner = true;
 			}
 
 			robot_servo(SERVO_CAM, CAM_POS_DOWN - 5, true, false);
-			camera_start_capture(FRAME_WIDTH, FRAME_HEIGHT);
 		}
 
 		// 2. case
@@ -567,7 +589,7 @@ void rescue_find_exit() {
 
 			printf("Case 2\n");
 			robot_turn(DTOR(90.0f));
-			robot_drive(-100, -100, 200);
+			robot_drive(-100, -100, 250);
 			robot_turn(DTOR(-180.0f));
 			robot_drive(-50, -50, 500);
 			already_checked_for_corner = false;
@@ -597,7 +619,18 @@ void rescue() {
 	display_set_mode(MODE_RESCUE);
 	display_set_image(IMAGE_RESCUE_FRAME, frame);
 	display_set_image(IMAGE_RESCUE_THRESHOLD, corner_thresh);
+
+	robot_serial_close();
+	delay(1000);
+	robot_serial_init();
+	delay(3000);
 	
+	/*rescue_find_exit();
+	delay(100);
+	camera_stop_capture();
+	delay(100);
+	return;*/
+
 	robot_drive(100, 100, 800);
 
 	int dist = robot_distance_avg(DIST_RIGHT_FRONT, 10, 2);
@@ -643,8 +676,7 @@ void rescue() {
 		
 		num_victims++;
 	}
-	robot_drive(80, 80, 600);
-	robot_drive(40, 40, 1500);
+	robot_drive(35, 35, 1000);
 	rescue_find_exit();
 
 	rescue_cleanup();
