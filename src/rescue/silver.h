@@ -42,6 +42,7 @@ void rescue_silver_destroy() {
 }
 
 float rescue_silver_detect_flipped(uint8_t *frame, uint8_t input_channels) {
+    return 0.0f;
     TfLiteTensor *input_tensor = TfLiteInterpreterGetInputTensor(interpreter, 0);
 
     uint8_t input_image_norm[WIDTH * HEIGHT];

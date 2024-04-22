@@ -177,16 +177,16 @@ void line_green() {
 
 
         if(green_result == RESULT_DEAD_END) {
-            robot_drive(60, 60, 170);
+            robot_drive(60, 60, 110);
             if (milliseconds() % 2 == 0) robot_turn(R180);
             else robot_turn(-R180);
             robot_drive(80, 80, 50);
         } else if(green_result == RESULT_LEFT) {
-                robot_drive(60, 60, 250);
+            robot_drive(60, 60, 250);
             robot_turn(DTOR(-65.0f));
             delay(30);
         } else if(green_result == RESULT_RIGHT) {
-                robot_drive(60, 60, 250);
+            robot_drive(60, 60, 250);
             robot_turn(DTOR(65.0f));
             delay(30);
         }
