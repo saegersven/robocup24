@@ -11,7 +11,7 @@
 #include "../utils.h"
 #include "../robot.h"
 
-#include "victims.h"
+#include "victims_v3.h"
 #include "corner.h"
 #include "silver.h"
 
@@ -192,7 +192,7 @@ int rescue_collect(int find_dead) {
 
 			robot_turn(DTOR(30.0f));
 			turn_counter++;
-			delay(250);
+			//delay(50);
 			if(turn_counter == 12) {
 				if(none_found_counter == 1) {
 					find_dead = 1;
@@ -620,16 +620,10 @@ void rescue() {
 	display_set_image(IMAGE_RESCUE_FRAME, frame);
 	display_set_image(IMAGE_RESCUE_THRESHOLD, corner_thresh);
 
-	robot_serial_close();
+	/*robot_serial_close();
 	delay(1000);
 	robot_serial_init();
 	delay(3000);
-	
-	/*rescue_find_exit();
-	delay(100);
-	camera_stop_capture();
-	delay(100);
-	return;*/
 
 	robot_drive(100, 100, 800);
 
@@ -643,7 +637,7 @@ void rescue() {
 		robot_turn(DTOR(-130.0f));
 		robot_drive(-100, -100, 800);
 		robot_turn(DTOR(120.0f));
-	}
+	}*/
 
 	//camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
 
@@ -657,7 +651,7 @@ void rescue() {
 
 	display_set_number(NUMBER_RESCUE_OBJECTIVE, RESCUE_OBJECTIVE_VICTIM);
 
-	int num_victims = 0;
+	int num_victims = 2;
 
 	while(num_victims < 3) {
 		display_set_number(NUMBER_RESCUE_NUM_VICTIMS, num_victims);

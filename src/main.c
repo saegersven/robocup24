@@ -14,7 +14,7 @@
 #define STATE_RESCUE 1
 
 //#define DISABLE_BUTTON_START
-//#define RESCUE_START
+#define RESCUE_START
 
 
 static int state;

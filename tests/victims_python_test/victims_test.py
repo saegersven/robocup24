@@ -1,5 +1,7 @@
+from picamera.array import PiRGBArray
+from picamera import PiCamera
+import numpy as np
 import os
-import cv2
 import time
 
 from tensorflow.lite.python.interpreter import Interpreter
@@ -20,13 +22,15 @@ print(f"Model expects {width}x{height} image")
 input_mean = 127.5
 input_std = 127.5
 
-cap = cv2.VideoCapture(0)
-while True:
-    cap.grab()
-    _, image = cap.retrieve()
+camera = PiCamera()
+camera.resolution = (320, 240)
+camera.rotation = 0
+camera.framerate = 90
+rawCapture = PiRGBArray(camera, size=(320, 240))
 
-    image = cv2.cvtColor(cv2.resize(image, (320, 240)), cv2.COLOR_BGR2RGB)
-
+for frame in camera.capture_continuous(rawCapture, format='bgr', use_video_port=True):
+    image = frame.array
+    
     input_data = (input_data - input_mean) / input_std
 
     interpreter.set_tensor(input_details[0]['index'], input_data)
@@ -36,3 +40,9 @@ while True:
     end_time = time.time()
 
     print(f"Invoke took: {(end_time - start_time)/1000:.0f} ms")
+
+    rawCapture.truncate(0)
+    key = cv2.waitKey(1) & 0xFF
+    if key == ord('q'):
+        camera.close()
+        exit()
