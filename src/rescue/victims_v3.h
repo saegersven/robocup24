@@ -56,7 +56,7 @@ void victims_destroy() {
     victims_model = NULL;
 }
 
-#define DETECTION_THRESHOLD 200
+#define DETECTION_THRESHOLD 160
 
 struct Group {
     uint32_t num_pixels;

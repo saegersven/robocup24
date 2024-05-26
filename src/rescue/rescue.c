@@ -11,7 +11,7 @@
 #include "../utils.h"
 #include "../robot.h"
 
-#include "victims_v3.h"
+#include "victims.h"
 #include "corner.h"
 #include "silver.h"
 
@@ -115,11 +115,11 @@ int rescue_collect(int find_dead) {
 
 	float classification_accumulator = 0.0f;
 	int num_classifications = 0;
+	camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
 	while(1) {
 		robot_stop();
-		camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
+		delay(60);
 		camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
-		camera_stop_capture();
 		printf("Frame grabbed\n");
 		int ret = victims_find(frame, find_dead, &victim);
 		printf("%d\n", ret);
@@ -148,6 +148,7 @@ int rescue_collect(int find_dead) {
 					robot_drive(-60, -60, 180);
 					delay(50);
 					rescue_collect_victim();
+					camera_stop_capture();
 					return (int)roundf(classification_accumulator / num_classifications) + 1;
 				}
 			} else {
@@ -192,7 +193,7 @@ int rescue_collect(int find_dead) {
 
 			robot_turn(DTOR(30.0f));
 			turn_counter++;
-			//delay(50);
+			delay(250);
 			if(turn_counter == 12) {
 				if(none_found_counter == 1) {
 					find_dead = 1;
@@ -643,6 +644,7 @@ void rescue() {
 
 
 	robot_servo(SERVO_CAM, CAM_POS_UP, false, false);
+	delay(100000);
 	robot_servo(SERVO_ARM, ARM_POS_UP, false, false);
 	robot_servo(SERVO_STRING, STRING_POS_OPEN, false, false);
 

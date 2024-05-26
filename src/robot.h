@@ -56,11 +56,11 @@
 
 #define CAM_HEIGHT_MM 140
 
-#define CAM_POS_UP 60
+#define CAM_POS_UP 60       // 20° to the horizontal
 #define CAM_POS_HORIZONTAL 36
 #define CAM_POS_DOWN2 90
 #define CAM_POS_DOWN3 110
-#define CAM_POS_DOWN 135
+#define CAM_POS_DOWN 135    // 85° to the horizontal
 
 #define ARM_POS_DOWN 147
 #define ARM_POS_HALF_DOWN 112
