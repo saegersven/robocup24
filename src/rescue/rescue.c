@@ -644,7 +644,6 @@ void rescue() {
 
 
 	robot_servo(SERVO_CAM, CAM_POS_UP, false, false);
-	delay(100000);
 	robot_servo(SERVO_ARM, ARM_POS_UP, false, false);
 	robot_servo(SERVO_STRING, STRING_POS_OPEN, false, false);
 
