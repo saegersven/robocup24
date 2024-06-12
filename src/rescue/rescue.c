@@ -439,27 +439,35 @@ int pixels_black() {
     return image_count_pixels(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3, is_black);
 }
 
+// navigates around corner
+void rescue_navigate_corner() {
+	if (robot_distance_avg(DIST_RIGHT_FRONT, 10, 0.2f) < 70) {
+		robot_drive(0, -100, 300);
+		robot_drive(-100, 0, 400);
+		robot_drive(40, 40, 1100);
+	}
+	robot_drive(-100, -100, 300);
+	robot_turn(-R90);
+	if (robot_distance_avg(DIST_FRONT, 10, 0.2f) > 900) { //ohohoho exit in front
+		robot_drive(100, 100, 600);
+		robot_turn(DTOR(135.0f));
+		robot_drive(-100, -100, 700);
+		robot_turn(-R180);
+		robot_drive(-100, -100, 500);
+	} else {
+		robot_drive(50, 50, 0);
+		while (robot_sensor(DIST_FRONT) > 200);
+		robot_stop();
+		robot_turn(DTOR(135.0f));
+		robot_drive(-100, -100, 250);
+		robot_turn(-DTOR(175.0f));
+		robot_drive(-100, -100, 250);
+	}
+}
+
 void rescue_find_exit() {
 	printf("I am in find exit now. Pls pray for me.\n");
-	robot_drive(-100, -100, 200);
-	delay(30);
-	robot_turn(-R90);
-	delay(30);
-	robot_drive(50, 50, 0);
-	while(robot_sensor(DIST_FRONT) > 200);
-	robot_stop();
-	delay(30);
-	robot_turn(DTOR(135.0f));
-	delay(30);
-	robot_drive(-100, -100, 150);
-	delay(30);
-	robot_turn(-R90);
-	delay(30);
-	robot_drive(50, 50, 700);
-	robot_drive(-80, -80, 250);
-	delay(30);
-	robot_turn(-R90);
-	delay(30);
+	rescue_navigate_corner();
 
 	bool already_checked_for_corner = false;
 	long long side_exit_cooldown = 0;
@@ -554,28 +562,12 @@ void rescue_find_exit() {
 
 			printf("Case 1\n");
 			if (rescue_is_corner()) {
-				robot_turn(DTOR(135.0f));
-				delay(30);
+				robot_drive(-100, -100, 50);
+				robot_turn(DTOR(132.0f));
 				robot_drive(-100, -100, 300);
-				delay(30);
 				robot_turn(-R90);
-				delay(30);
 				robot_drive(40, 40, 1500);
-				delay(30);
-				robot_drive(-80, -80, 250);
-				delay(30);
-				robot_turn(-R90);
-				delay(30);
-				robot_drive(50, 50, 0);
-				while (robot_sensor(DIST_FRONT) > 200);
-				delay(30);
-				robot_turn(DTOR(135.0f));
-				delay(30);
-				robot_drive(-100, -100, 400);
-				delay(30);
-				robot_turn(DTOR(-180.0f));
-				delay(30);
-				robot_drive(-100, -100, 300);
+				rescue_navigate_corner();
 			} else {
 				already_checked_for_corner = true;
 			}
@@ -584,9 +576,9 @@ void rescue_find_exit() {
 		}
 
 		// 2. case
-		else if (front_dist < 90
+		else if (front_dist < 130
 			&& robot_stop()
-			&& robot_distance_avg(DIST_FRONT, 5, 1) < 100) {
+			&& robot_distance_avg(DIST_FRONT, 5, 1) < 150) {
 
 			printf("Case 2\n");
 			robot_turn(DTOR(90.0f));
@@ -620,6 +612,7 @@ void rescue() {
 	display_set_mode(MODE_RESCUE);
 	display_set_image(IMAGE_RESCUE_FRAME, frame);
 	display_set_image(IMAGE_RESCUE_THRESHOLD, corner_thresh);
+	rescue_find_exit();
 
 	/*robot_serial_close();
 	delay(1000);
