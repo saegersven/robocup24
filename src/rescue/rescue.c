@@ -15,6 +15,10 @@
 #include "corner.h"
 #include "silver.h"
 
+// TuhDu (@Sven):
+// cooldown when exit front detect
+// test front exit
+
 static DECLARE_S_IMAGE(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3);
 
 // accurate flag uses rescue_reposition for improved accuracy
@@ -537,11 +541,11 @@ void rescue_find_exit() {
 				robot_drive(-60, -60, 150);
 				if (!rescue_is_exit()) {
 					// no exit, skip
-					robot_drive(-80, -80, 600);
+					robot_drive(-80, -80, 500);
 					robot_turn(DTOR(90.0f));
-					robot_drive(-100, -100, 300);
+					robot_drive(-100, -100, 400);
 					robot_turn(DTOR(-180.0f));
-					robot_drive(-50, -50, 500);
+					robot_drive(-50, -50, 1200);
 					side_exit_cooldown = milliseconds();
 				} else return;
 			}
@@ -556,13 +560,14 @@ void rescue_find_exit() {
 
 		// 1. case
 		if (!already_checked_for_corner &&
-			front_dist < 340
+			front_dist < 360
 			&& robot_stop()
-			&& robot_distance_avg(DIST_FRONT, 5, 1) < 360) {
+			&& robot_distance_avg(DIST_FRONT, 5, 1) < 380) {
 
 			printf("Case 1\n");
 			if (rescue_is_corner()) {
-				robot_drive(-100, -100, 50);
+				robot_drive(-100, -100, 200);
+				delay(30);
 				robot_turn(DTOR(132.0f));
 				robot_drive(-100, -100, 300);
 				robot_turn(-R90);
@@ -584,7 +589,10 @@ void rescue_find_exit() {
 			robot_turn(DTOR(90.0f));
 			robot_drive(-100, -100, 250);
 			robot_turn(DTOR(-180.0f));
-			robot_drive(-50, -50, 500);
+			robot_drive(-50, -50, 400);
+			if (already_checked_for_corner) {
+				robot_drive(-50, -50, 800);
+			}
 			already_checked_for_corner = false;
 		}
 
