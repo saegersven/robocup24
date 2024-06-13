@@ -22,10 +22,10 @@ int line_obstacle_drive_time_or_line(int time_ms, int left) {
     }
 
     long long start_t = milliseconds();
-    robot_drive(left ? 100 : 34, left ? 34 : 100, 0);
+    robot_drive(left ? 100 : 37, left ? 36 : 100, 0);
     delay(400);
     while(milliseconds() - start_t < time_ms) {
-        robot_drive(left ? 100 : 34, left ? 34 : 100, 0);
+        robot_drive(left ? 100 : 37, left ? 36 : 100, 0);
 
         camera_grab_frame(frame, LINE_FRAME_WIDTH, LINE_FRAME_HEIGHT);
         line_black_threshold();
@@ -51,7 +51,7 @@ int line_obstacle_drive_time_or_line(int time_ms, int left) {
 }
 
 void line_obstacle_navigate() {
-    int left = milliseconds() % 2 == 0;
+    int left = rand() % 2 == 0;
 
     display_set_mode(MODE_LINE_OBSTACLE);
     robot_stop();
@@ -94,7 +94,7 @@ void line_obstacle_navigate() {
     robot_turn(DTOR(left ? -45.0f : 45.0f));
     robot_drive(80, 80, 450);
     robot_turn(DTOR(left ? -25.0f : 25.0f));
-    robot_drive(-80, -80, 300);
+    robot_drive(-80, -80, 470);
     display_set_mode(MODE_LINE_FOLLOW);
 }
 

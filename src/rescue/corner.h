@@ -106,9 +106,9 @@ int corner_detect(uint8_t *input, float *x, int green, long long time_searching)
     }
     printf("Corner Num pixels: %d\n", num_pixels);
     if(num_pixels > 7) {    
-        char filename[64];
+        /*char filename[64];
         sprintf(filename, "/home/pi/capture/corner/%lld.png", milliseconds());
-        write_image(filename, input, CORNER_INPUT_WIDTH, CORNER_INPUT_HEIGHT, 3);
+        write_image(filename, input, CORNER_INPUT_WIDTH, CORNER_INPUT_HEIGHT, 3);*/
 
         *x /= num_pixels;
         *x /= CORNER_MODEL_OUTPUT_WIDTH;
@@ -125,9 +125,9 @@ static uint8_t corner_thresh[CORNER_INPUT_WIDTH * CORNER_INPUT_HEIGHT];
 #define CORNER_Y_SKIP 80
 
 int corner_detect_classic(uint8_t *input, float *x, int green) {
-    char filename[64];
+    /*char filename[64];
     sprintf(filename, "/home/pi/capture/corner/%lld.png", milliseconds());
-    write_image(filename, input, CORNER_INPUT_WIDTH, CORNER_INPUT_HEIGHT, 3);
+    write_image(filename, input, CORNER_INPUT_WIDTH, CORNER_INPUT_HEIGHT, 3);*/
 
     uint32_t num_pixels = 0;
 

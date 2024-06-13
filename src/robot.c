@@ -156,7 +156,13 @@ void robot_turn(float angle) {
     robot_serial_write_command(CMD_TURN, &angle_mrad, 2);
 
     uint8_t value = 0;
-    while(robot_serial_read(&value, 1) != 1 && value != 1);
+    uint64_t start_time = milliseconds();
+    while(robot_serial_read(&value, 1) != 1 && value != 1) {
+        if(milliseconds() - start_time > 10000) {
+            printf("robot_turn: Timeout waiting for answer from Nano");
+            break;
+        }
+    }
 }
 
 void robot_servo(uint8_t servo_id, uint8_t angle, bool stall, bool nodelay) {

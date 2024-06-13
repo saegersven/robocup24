@@ -119,11 +119,13 @@ int rescue_collect(int find_dead) {
 
 	float classification_accumulator = 0.0f;
 	int num_classifications = 0;
-	camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
+	//camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
 	while(1) {
 		robot_stop();
 		delay(60);
+		camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
 		camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
+		camera_stop_capture();
 		printf("Frame grabbed\n");
 		int ret = victims_find(frame, find_dead, &victim);
 		printf("%d\n", ret);
@@ -152,7 +154,7 @@ int rescue_collect(int find_dead) {
 					robot_drive(-60, -60, 180);
 					delay(50);
 					rescue_collect_victim();
-					camera_stop_capture();
+					//camera_stop_capture();
 					return (int)roundf(classification_accumulator / num_classifications) + 1;
 				}
 			} else {
@@ -286,7 +288,7 @@ void rescue_deliver(int is_dead) {
 	for(int i = 0; i < 5; i++) camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
 	camera_stop_capture();
 	delay(200);
-	camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
+	//camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
 
 	long long start_time = milliseconds();
 
@@ -295,9 +297,9 @@ void rescue_deliver(int is_dead) {
 		robot_turn(DTOR(20.0f));
 		delay(250);
 
-		//camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
+		camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
 		camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
-		//camera_stop_capture();
+		camera_stop_capture();
 
 		delay(50);
 
@@ -313,7 +315,9 @@ void rescue_deliver(int is_dead) {
 			int alignment_successful = 1;
 			// Align for final approach
 			for(int i = 0; i < 6; i++) {
+				camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
 				camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
+				camera_stop_capture();
 				delay(50);
 
 				if(!corner_detect(frame, &x, !is_dead, milliseconds() - start_time)) {
@@ -354,7 +358,7 @@ void rescue_deliver(int is_dead) {
 				robot_turn(DTOR(45.0f)); // face away from corner to avoid detecting rescued victims (just to be safe)
 			}
 
-			camera_stop_capture();
+			//camera_stop_capture();
 			return;
 		}
 
@@ -452,7 +456,7 @@ void rescue_navigate_corner() {
 	}
 	robot_drive(-100, -100, 300);
 	robot_turn(-R90);
-	if (robot_distance_avg(DIST_FRONT, 10, 0.2f) > 900) { //ohohoho exit in front
+	if (robot_distance_avg(DIST_FRONT, 10, 0.2f) > 1500) { //ohohoho exit in front
 		robot_drive(100, 100, 600);
 		robot_turn(DTOR(135.0f));
 		robot_drive(-100, -100, 700);
@@ -608,7 +612,7 @@ void rescue_find_exit() {
 
 			if (!rescue_is_exit()) {
 				// no exit, skip
-				robot_drive(-80, -80, 600);
+				robot_drive(-80, -80, 400);
 				robot_turn(DTOR(-90.0f));
 				side_exit_cooldown = milliseconds();
 			} else return;
@@ -620,9 +624,8 @@ void rescue() {
 	display_set_mode(MODE_RESCUE);
 	display_set_image(IMAGE_RESCUE_FRAME, frame);
 	display_set_image(IMAGE_RESCUE_THRESHOLD, corner_thresh);
-	rescue_find_exit();
 
-	/*robot_serial_close();
+	robot_serial_close();
 	delay(1000);
 	robot_serial_init();
 	delay(3000);
@@ -639,7 +642,7 @@ void rescue() {
 		robot_turn(DTOR(-130.0f));
 		robot_drive(-100, -100, 800);
 		robot_turn(DTOR(120.0f));
-	}*/
+	}
 
 	//camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
 
@@ -653,7 +656,7 @@ void rescue() {
 
 	display_set_number(NUMBER_RESCUE_OBJECTIVE, RESCUE_OBJECTIVE_VICTIM);
 
-	int num_victims = 2;
+	int num_victims = 0;
 
 	while(num_victims < 3) {
 		display_set_number(NUMBER_RESCUE_NUM_VICTIMS, num_victims);
