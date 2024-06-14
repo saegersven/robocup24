@@ -109,3 +109,11 @@ void box_blur(S_IMAGE(src), uint8_t *dest, int kernel_size, int iterations) {
         }
     }
 }
+
+float average_difference(uint8_t *one, S_IMAGE(two)) {
+    float diff = 0.0f;
+    for(int i = 0; i < two_w * two_h * two_c; i++) {
+        diff += fabsf(one[i] - two_d[i]);
+    }
+    return diff / (two_w * two_h * two_c);
+}

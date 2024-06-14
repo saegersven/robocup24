@@ -7,6 +7,7 @@
 #include "red.h"
 #include "obstacle.h"
 #include "silver.h"
+#include "unstuck.h"
 #include "../vision.h"
 #include "../utils.h"
 #include "../display/display.h"
@@ -86,6 +87,7 @@ int line() {
     int ret = 0;
 
 #ifndef LINE_CAPTURE_MODE
+    line_unstuck();
     line_follow();
     line_green();
     line_obstacle();
@@ -99,6 +101,8 @@ int line() {
     write_image(filename, LINE_IMAGE_TO_PARAMS(frame));
     delay(84);
 #endif
+
+    memcpy(last_frame, frame, LINE_FRAME_WIDTH * LINE_FRAME_HEIGHT * 3);
 
     return ret;
 }

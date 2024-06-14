@@ -60,10 +60,10 @@
 #define CAM_POS_HORIZONTAL 36
 #define CAM_POS_DOWN2 90
 #define CAM_POS_DOWN3 113
-#define CAM_POS_DOWN 135    // 85° to the horizontal
+#define CAM_POS_DOWN 136    // 85° to the horizontal
 
-#define ARM_POS_DOWN 137
-#define ARM_POS_HALF_DOWN 107
+#define ARM_POS_DOWN 135
+#define ARM_POS_HALF_DOWN 105
 
 #define ARM_POS_UP 15
 #define STRING_POS_CLOSED 130

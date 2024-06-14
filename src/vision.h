@@ -26,3 +26,5 @@ void resize_image(S_IMAGE(src), S_IMAGE(dest), int new_width, int new_height);
 
 // Needed for corner
 void box_blur(S_IMAGE(src), uint8_t *dest, int kernel_size, int iterations);
+
+float average_difference(uint8_t *one, S_IMAGE(two));
