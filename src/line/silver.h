@@ -146,7 +146,7 @@ int line_silver() {
         int dist = robot_distance_avg(DIST_FRONT, 20, 0.2f);
 
         printf("Silver check distance: %d\n", dist);
-        if (dist > 2000 && dist > 500) {
+        if (dist > 2000 || dist < 500) {
             char path[64];
             sprintf(path, "/home/pi/silver_false_positives/%lld.png", milliseconds());
             write_image(path, LINE_IMAGE_TO_PARAMS(frame));

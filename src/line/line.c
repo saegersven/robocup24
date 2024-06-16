@@ -89,7 +89,7 @@ int line() {
 #ifndef LINE_CAPTURE_MODE
     line_unstuck();
     line_follow();
-    line_green();
+    line_green(0);
     line_obstacle();
     line_red();
 

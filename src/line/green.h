@@ -13,12 +13,13 @@ const char* RESULT_STR[4] = {"", "LEFT", "RIGHT", "DEAD-END"};
 
 #define MAX_NUM_GROUPS 8
 
-#define CUT_WIDTH 30
-#define CUT_HEIGHT 30
+#define CUT_WIDTH 36
+#define CUT_HEIGHT 36
 
 #define GROUP_Y_CHECK_CUTOFF 10
-#define GROUP_Y_MIN 15
-#define GROUP_Y_MAX 36
+#define GROUP_Y_MIN 18
+#define GROUP_Y_MAX 34
+#define GROUP_HIGH_MIN_DIST 16
 
 struct Group {
     uint32_t num_pixels;
@@ -79,21 +80,41 @@ void line_find_groups(struct Group *groups, uint32_t *num_groups) {
 uint8_t line_green_direction(float *global_average_x, float *global_average_y) {
     uint8_t result = 0;
 
-    struct Group groups[MAX_NUM_GROUPS];
-    uint32_t num_groups = 0;
+    struct Group groups_all[MAX_NUM_GROUPS];
+    uint32_t num_groups_all = 0;
 
-    line_find_groups(groups, &num_groups);
-    if(num_groups == 0) return 0;
+    line_find_groups(groups_all, &num_groups_all);
+    if(num_groups_all == 0) return 0;
 
     // Check if all groups y-coordinates are in a certain range to prevent premature evaluation
     // of a dead-end or late evaluation of green points behind a line, when the lower line is
     // already out of the frame
-    for(int i = 0; i < num_groups; i++) {
-        if(groups[i].center_y > GROUP_Y_CHECK_CUTOFF) {
-            if(groups[i].center_y < GROUP_Y_MIN) return 0;
-            if(groups[i].center_y > GROUP_Y_MAX) return 0;
+
+    struct Group groups[MAX_NUM_GROUPS];
+    uint32_t num_groups = 0;
+
+    for(int i = 0; i < num_groups_all; i++) {
+        if(groups_all[i].center_y > GROUP_Y_MIN
+            && groups_all[i].center_y < GROUP_Y_MAX) {
+            int high_group_close = 0;
+            for(int j = 0; j < num_groups_all; j++) {
+                if(groups_all[j].center_y < GROUP_Y_MIN) {
+                    int dist = groups_all[i].center_y - groups_all[j].center_y;
+                    printf("Dist: %d\n", dist);
+                    if(dist < GROUP_HIGH_MIN_DIST) {
+                        high_group_close = 1;
+                    }
+                }
+            }
+
+            if(!high_group_close) {
+                groups[num_groups] = groups_all[i];
+                num_groups++;
+            }
         }
     }
+
+    if(num_groups == 0) return 0;
 
     *global_average_x = 0.0f;
     *global_average_y = 0.0f;
@@ -147,7 +168,7 @@ uint8_t line_green_direction(float *global_average_x, float *global_average_y) {
     return result;
 }
 
-void line_green() {
+void line_green(int previous_result) {
     if(num_green_pixels > LINE_MIN_NUM_GREEN_PIXELS) {
         /*write_image("green.png", LINE_IMAGE_TO_PARAMS_GRAY(green));
         write_image("black.png", LINE_IMAGE_TO_PARAMS_GRAY(black));
@@ -156,28 +177,54 @@ void line_green() {
         float global_average_x, global_average_y;
         uint8_t green_result = line_green_direction(&global_average_x, &global_average_y);
 
-        printf("GREEN RESULT: %d\n", green_result);
+        if(previous_result == 3) green_result = 3;
 
-        if(green_result == 0) return;
+        if(green_result == 0) {
+            if(previous_result == 0) return;
+            green_result = previous_result;    
+        }
+
+        printf("GREEN RESULT: %d\n", green_result);
 
         obstacle_enabled = 0;
 
         robot_stop();
         delay(40);
 
-        // Approach
-        float dx = global_average_x - LINE_CENTER_X;
-        float dy = global_average_y - LINE_CENTER_Y;
-        float angle = atan2f(dy, dx) + PI / 2.0f;
-        float distance = sqrtf(dx*dx + dy*dy);
+        if(!previous_result) {
+            
+            // Approach
+            float dx = global_average_x - LINE_CENTER_X;
+            float dy = global_average_y - LINE_CENTER_Y;
+            float angle = atan2f(dy, dx) + PI / 2.0f;
+            float distance = sqrtf(dx*dx + dy*dy);
 
-        robot_turn(angle);
-        delay(40);
-        robot_drive(80, 80, DISTANCE_FACTOR * (distance - 50));
+            robot_turn(angle);
+            delay(40);
+            robot_drive(80, 80, DISTANCE_FACTOR * (distance - 60));
+            delay(30);
 
+            printf("Result without turn: %d\n", green_result);
+
+            camera_grab_frame(frame, LINE_FRAME_WIDTH, LINE_FRAME_HEIGHT);
+
+            // Thresholding in here as some images are required by multiple functions
+            line_black_threshold();
+
+            num_green_pixels = 0;
+            image_threshold(LINE_IMAGE_TO_PARAMS_GRAY(green), LINE_IMAGE_TO_PARAMS(frame), &num_green_pixels, is_green);
+            
+            line_green(green_result);
+            return;
+        }
+
+        /*int pitch = robot_sensor(IMU_PITCH);
+        if(pitch > 200 && pitch < 600) {
+            robot_drive(100, 100, 400);
+        }*/
 
         if(green_result == RESULT_DEAD_END) {
-            robot_drive(60, 60, 110);
+            robot_drive(60, 60, 130);
             if (rand() % 2 == 0) robot_turn(R180);
             else robot_turn(-R180);
             robot_drive(80, 80, 50);

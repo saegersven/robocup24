@@ -23,6 +23,7 @@ static DECLARE_S_IMAGE(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3);
 
 // accurate flag uses rescue_reposition for improved accuracy
 void rescue_find_center(bool accurate) {
+	robot_serial_reset();
 	const int MAX_TIME = 2500;
 
 	for(int i = 0; i < 2; i++) {
@@ -314,7 +315,7 @@ void rescue_deliver(int is_dead) {
 
 			int alignment_successful = 1;
 			// Align for final approach
-			for(int i = 0; i < 6; i++) {
+			for(int i = 0; i < 8; i++) {
 				camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
 				camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
 				camera_stop_capture();
@@ -331,7 +332,7 @@ void rescue_deliver(int is_dead) {
 				}
 
 				robot_turn(x * DTOR(65.0f) + DTOR(1.0f));
-				robot_drive(45, 45, 700);
+				if(i > 1) robot_drive(45, 45, 700);
 				delay(80);
 			}
 
@@ -347,7 +348,7 @@ void rescue_deliver(int is_dead) {
 			*/
 			robot_drive(-100, 0, 250);
 			robot_drive(0, -100, 350);
-			robot_drive(50, 50, 950);
+			robot_drive(40, 40, 1150);
 
 			// Drop victim
 			rescue_drop_victim();
@@ -448,7 +449,7 @@ int pixels_black() {
 }
 
 // navigates around corner
-void rescue_navigate_corner() {
+int rescue_navigate_corner() {
 	if (robot_distance_avg(DIST_RIGHT_FRONT, 10, 0.2f) < 70) {
 		robot_drive(0, -100, 300);
 		robot_drive(-100, 0, 400);
@@ -457,11 +458,20 @@ void rescue_navigate_corner() {
 	robot_drive(-100, -100, 300);
 	robot_turn(-R90);
 	if (robot_distance_avg(DIST_FRONT, 10, 0.2f) > 1500) { //ohohoho exit in front
-		robot_drive(100, 100, 600);
-		robot_turn(DTOR(135.0f));
-		robot_drive(-100, -100, 700);
-		robot_turn(-R180);
-		robot_drive(-100, -100, 500);
+		
+		camera_start_capture(RESCUE_CAPTURE_WIDTH, RESCUE_CAPTURE_HEIGHT);
+		while(1) {
+			robot_drive(60, 60, 0);
+			camera_grab_frame(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT);
+			int num_pixels = image_count_pixels(frame, RESCUE_FRAME_WIDTH, RESCUE_FRAME_HEIGHT, 3, is_black);
+			if(num_pixels > 200) break;
+		}
+		camera_stop_capture();
+
+		robot_turn(DTOR(45.0f));
+		robot_drive(100, 100, 300);
+
+		return 1;
 	} else {
 		robot_drive(50, 50, 0);
 		while (robot_sensor(DIST_FRONT) > 200);
@@ -471,11 +481,12 @@ void rescue_navigate_corner() {
 		robot_turn(-DTOR(175.0f));
 		robot_drive(-100, -100, 250);
 	}
+	return 0;
 }
 
 void rescue_find_exit() {
 	printf("I am in find exit now. Pls pray for me.\n");
-	rescue_navigate_corner();
+	if(rescue_navigate_corner()) return;
 
 	bool already_checked_for_corner = false;
 	long long side_exit_cooldown = 0;
@@ -576,7 +587,7 @@ void rescue_find_exit() {
 				robot_drive(-100, -100, 300);
 				robot_turn(-R90);
 				robot_drive(40, 40, 1500);
-				rescue_navigate_corner();
+				if(rescue_navigate_corner()) return;
 			} else {
 				already_checked_for_corner = true;
 			}
@@ -615,20 +626,19 @@ void rescue_find_exit() {
 				robot_drive(-80, -80, 400);
 				robot_turn(DTOR(-90.0f));
 				side_exit_cooldown = milliseconds();
-			} else return;
+			} else {
+				robot_drive(100, 100, 150);
+				return;
+			}
 		}
 	}
 }
-
 void rescue() {
 	display_set_mode(MODE_RESCUE);
 	display_set_image(IMAGE_RESCUE_FRAME, frame);
 	display_set_image(IMAGE_RESCUE_THRESHOLD, corner_thresh);
 
-	robot_serial_close();
-	delay(1000);
-	robot_serial_init();
-	delay(3000);
+	robot_serial_reset();
 
 	robot_drive(100, 100, 800);
 

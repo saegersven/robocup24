@@ -32,6 +32,7 @@ void *main_loop(void *arg) {
 #else
     state = STATE_RESCUE;
 #endif
+    srand(milliseconds());
 
     while(1) {
         if(state == STATE_LINE) {

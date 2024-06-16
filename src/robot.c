@@ -86,6 +86,13 @@ void robot_serial_close() {
     close(serial_fd);
 }
 
+void robot_serial_reset() {
+	robot_serial_close();
+	delay(500);
+	robot_serial_init();
+	delay(2500);
+}
+
 void robot_serial_write_command(uint8_t command, uint8_t *data, uint8_t len) {
     uint8_t buf[32];
 

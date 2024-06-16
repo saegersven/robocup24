@@ -57,6 +57,7 @@ int corner_detect(uint8_t *input, float *x, int green, long long time_searching)
         green_threshold = 0.2f;
     }
 
+
     TfLiteTensor *input_tensor = TfLiteInterpreterGetInputTensor(corner_interpreter, 0);
 
     float input_image[CORNER_MODEL_CORNER_INPUT_WIDTH * CORNER_MODEL_CORNER_INPUT_HEIGHT * CORNER_MODEL_CORNER_INPUT_CHANNELS];
@@ -124,7 +125,7 @@ static uint8_t corner_thresh[CORNER_INPUT_WIDTH * CORNER_INPUT_HEIGHT];
 
 #define CORNER_Y_SKIP 80
 
-int corner_detect_classic(uint8_t *input, float *x, int green) {
+int corner_detect_classic(uint8_t *input, float *x, int green, long long t) {
     /*char filename[64];
     sprintf(filename, "/home/pi/capture/corner/%lld.png", milliseconds());
     write_image(filename, input, CORNER_INPUT_WIDTH, CORNER_INPUT_HEIGHT, 3);*/
@@ -142,7 +143,8 @@ int corner_detect_classic(uint8_t *input, float *x, int green) {
             }
         }
     }
-    if(num_pixels < 0.01f * CORNER_INPUT_WIDTH * CORNER_INPUT_HEIGHT) return 0;
+    printf("Num pixels: %d\n", num_pixels);
+    if(num_pixels < 0.001f * CORNER_INPUT_WIDTH * CORNER_INPUT_HEIGHT) return 0;
 
     *x /= num_pixels * CORNER_INPUT_WIDTH;
     *x -= 0.5f;
