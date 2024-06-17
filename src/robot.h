@@ -59,13 +59,13 @@
 #define CAM_POS_UP 60       // 20° to the horizontal
 #define CAM_POS_HORIZONTAL 36
 #define CAM_POS_DOWN2 90
-#define CAM_POS_DOWN3 110
-#define CAM_POS_DOWN 135    // 85° to the horizontal
+#define CAM_POS_DOWN3 113
+#define CAM_POS_DOWN 138    // 85° to the horizontal
 
-#define ARM_POS_DOWN 147
-#define ARM_POS_HALF_DOWN 112
+#define ARM_POS_DOWN 136
+#define ARM_POS_HALF_DOWN 106
 
-#define ARM_POS_UP 20
+#define ARM_POS_UP 15
 #define STRING_POS_CLOSED 130
 #define STRING_POS_OPEN 30
 
@@ -82,6 +82,7 @@
 void robot_init();
 void robot_serial_init();
 void robot_serial_close();
+void robot_serial_reset();
 
 void robot_serial_write_command(uint8_t command, uint8_t *data, uint8_t len);
 int robot_serial_read(uint8_t *data, uint8_t len);

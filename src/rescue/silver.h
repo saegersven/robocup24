@@ -64,7 +64,7 @@ float rescue_silver_detect_flipped(uint8_t *frame, uint8_t input_channels) {
         }
     }
     
-    write_image("/home/pi/Desktop/silver.png", LINE_IMAGE_TO_PARAMS(input_image_debug));
+    //write_image("/home/pi/Desktop/silver.png", LINE_IMAGE_TO_PARAMS(input_image_debug));
 
     if(TfLiteTensorCopyFromBuffer(input_tensor, input_image_norm, WIDTH * HEIGHT * sizeof(float)) != kTfLiteOk) {
         fprintf(stderr, "silver_detect: Could not copy input tensor\n");

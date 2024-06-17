@@ -185,7 +185,7 @@ void update_orientation() {
   sensors_event_t orientation_data;
   bno.getEvent(&orientation_data, Adafruit_BNO055::VECTOR_EULER);
   heading = orientation_data.orientation.x / 180.0f * PI;
-  pitch = orientation_data.orientation.z / 180.0f * PI;
+  pitch = orientation_data.orientation.y / 180.0f * PI;
 }
 
 float get_heading() {

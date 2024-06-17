@@ -131,6 +131,7 @@ int line_silver() {
 
     //pthread_mutex_lock(&silver_output_lock);
     int res = silver_outputs[0] > silver_outputs[1];
+    //printf("Silver_outputs[0]: %f \n", silver_outputs[0]);
     //printf("%f\n", silver_outputs[0]);
 
 #ifdef DISPLAY_ENABLE
@@ -142,10 +143,18 @@ int line_silver() {
         printf("NN detects entrance!\n");
         robot_stop();
 
-        //char path[64];
-        //sprintf(path, "/home/pi/silver/%lld.png", milliseconds());
-        //write_image(path, LINE_IMAGE_TO_PARAMS(frame));
-        
+        int dist = robot_distance_avg(DIST_FRONT, 20, 0.2f);
+
+        printf("Silver check distance: %d\n", dist);
+        if (dist > 2000 || dist < 500) {
+            char path[64];
+            sprintf(path, "/home/pi/silver_false_positives/%lld.png", milliseconds());
+            write_image(path, LINE_IMAGE_TO_PARAMS(frame));
+
+            // Disable silver for a few frames
+            silver_pause_counter = SILVER_PAUSE_NUM_FRAMES;
+            return 0;
+        }
         robot_servo(SERVO_CAM, CAM_POS_DOWN2, false, false);
         delay(300);
         camera_grab_frame(frame, LINE_FRAME_WIDTH, LINE_FRAME_HEIGHT);
@@ -174,6 +183,10 @@ int line_silver() {
             
             // Disable silver for a few frames
             silver_pause_counter = SILVER_PAUSE_NUM_FRAMES;
+            
+            char path[64];
+            sprintf(path, "/home/pi/silver_false_positives/%lld.png", milliseconds());
+            write_image(path, LINE_IMAGE_TO_PARAMS(frame));
             return 0;
         } else {
             printf("Detected entrance!\n");

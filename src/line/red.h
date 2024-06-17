@@ -12,7 +12,8 @@ void line_red() {
 
     if(red_percentage > LINE_RED_MIN_PERCENTAGE) {
         printf("Red percentage %f\n", red_percentage);
+        robot_drive(100, 100, 100);
         robot_stop();
-        delay(8000);
+        delay(7000);
     }
 }

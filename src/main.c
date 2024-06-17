@@ -14,7 +14,7 @@
 #define STATE_RESCUE 1
 
 //#define DISABLE_BUTTON_START
-#define RESCUE_START
+//#define RESCUE_START
 
 
 static int state;
@@ -32,6 +32,7 @@ void *main_loop(void *arg) {
 #else
     state = STATE_RESCUE;
 #endif
+    srand(milliseconds());
 
     while(1) {
         if(state == STATE_LINE) {
